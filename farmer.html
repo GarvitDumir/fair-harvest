@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fair Harvest – Seller</title>
+
+<!-- Tailwind CSS (Play CDN) -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          brand: { 50: '#e6f2e8', 100: '#cfe5d3', 600: '#2f6b3a', 800: '#1f4a28' }
+        }
+      }
+    }
+  };
+</script>
+
+<!-- Reusable component classes built from Tailwind utilities -->
+<style type="text/tailwindcss">
+  @layer components {
+    .btn { @apply cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-semibold transition hover:bg-brand-50; }
+    .btn-primary { @apply border-brand-600 bg-brand-600 text-white hover:bg-brand-800 disabled:cursor-not-allowed disabled:opacity-40; }
+    .btn-danger { @apply border-red-200 text-red-600 hover:bg-red-50; }
+    .btn-sm { @apply px-2.5 py-1.5 text-xs; }
+    .card { @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm; }
+    .field { @apply flex flex-col gap-1 text-xs font-semibold text-slate-500; }
+    .input { @apply rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-normal text-slate-800 outline-none focus:ring-2 focus:ring-brand-600; }
+    .tab { @apply flex min-w-[64px] flex-1 cursor-pointer flex-col items-center gap-0.5 px-1 py-2 text-[11px] text-slate-500 md:flex-none md:flex-row md:justify-start md:gap-2.5 md:px-4 md:py-3 md:text-sm; }
+    .tab.active { @apply bg-brand-50 font-semibold text-brand-600; }
+    .view { @apply hidden; }
+    .view.active { @apply block; }
+    .code { @apply overflow-auto whitespace-pre-wrap rounded-xl bg-slate-900 p-3 font-mono text-xs text-emerald-200; }
+    .h1 { @apply text-2xl font-bold; }
+    .sub { @apply mb-5 mt-1 text-slate-500; }
+    .h3 { @apply mb-3 text-base font-bold; }
+  }
+</style>
+
+<!-- The only plain CSS: the score ring needs a conic-gradient driven by --p -->
+<style>
+  .ring { background: conic-gradient(#2f6b3a calc(var(--p, 0) * 1%), #e2e8f0 0); }
+  .ring::before { content: ""; position: absolute; inset: 8px; background: #fff; border-radius: 50%; }
+  .ring span { position: relative; }
+</style>
+</head>
+<body class="bg-slate-50 pb-20 text-slate-800 antialiased md:pb-0">
+
+<div id="offlineBanner" class="hidden border-b border-amber-200 bg-amber-100 px-4 py-2.5 text-center text-sm text-amber-800">
+  📵 You are offline. Listings are saved on this phone and will sync automatically when the network returns.
+</div>
+
+<header class="sticky top-0 z-20 flex items-center justify-between bg-brand-600 px-4 py-3 text-white">
+  <div class="flex items-center gap-2.5">
+    <span class="text-3xl">🌾</span>
+    <div class="leading-tight"><strong>Fair Harvest</strong><small class="block text-[11px] opacity-75">Seller Console</small></div>
+  </div>
+  <div class="flex items-center gap-4">
+    <label class="flex cursor-pointer items-center gap-2 text-xs" title="Demo: simulate a network dead zone">
+      <input type="checkbox" id="offlineToggle" class="peer sr-only">
+      <span class="relative h-5 w-9 rounded-full bg-white/35 transition after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:transition peer-checked:bg-amber-400 peer-checked:after:translate-x-4"></span>
+      <em class="hidden not-italic opacity-90 sm:inline">Simulate offline</em>
+    </label>
+    <div class="text-right text-sm leading-tight"><span id="sellerName">Seller</span><small id="sellerVillage" class="block text-[11px] opacity-75"></small></div>
+  </div>
+</header>
+
+<nav id="tabs" class="fixed inset-x-0 bottom-0 z-30 flex overflow-x-auto border-t border-slate-200 bg-white md:inset-x-auto md:bottom-0 md:left-0 md:top-[60px] md:w-40 md:flex-col md:overflow-visible md:border-r md:border-t-0">
+  <button data-view="dashboard" class="tab active"><span class="text-xl md:text-base">📊</span>Home</button>
+  <button data-view="scan" class="tab"><span class="text-xl md:text-base">📷</span>AI Scan</button>
+  <button data-view="listings" class="tab"><span class="text-xl md:text-base">📦</span>Listings</button>
+  <button data-view="pool" class="tab"><span class="text-xl md:text-base">🚚</span>Truck Pool</button>
+  <button data-view="sms" class="tab"><span class="text-xl md:text-base">💬</span>SMS Bridge</button>
+  <button data-view="alerts" class="tab"><span class="text-xl md:text-base">🔔</span>Alerts</button>
+  <button data-view="settings" class="tab"><span class="text-xl md:text-base">⚙️</span>Settings</button>
+</nav>
+
+<main class="md:pl-40">
+<div class="mx-auto max-w-6xl p-4 md:p-6">
+
+<!-- DASHBOARD -->
+<section id="view-dashboard" class="view active">
+  <h1 class="h1">Namaste, <span id="dashName">Farmer</span> 👋</h1>
+  <p class="sub">Grade your produce, list it, and ship it together with your village. No middlemen.</p>
+
+  <div class="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+    <div class="card !p-4"><small class="text-xs text-slate-500">Active listings</small><b id="stActive" class="block text-2xl text-brand-800">0</b></div>
+    <div class="card !p-4"><small class="text-xs text-slate-500">Kg ready to sell</small><b id="stKg" class="block text-2xl text-brand-800">0</b></div>
+    <div class="card !p-4"><small class="text-xs text-slate-500">Expected earnings</small><b id="stMoney" class="block text-2xl text-brand-800">₹0</b></div>
+    <div class="card !p-4"><small class="text-xs text-slate-500">Sold so far</small><b id="stSold" class="block text-2xl text-brand-800">₹0</b></div>
+  </div>
+
+  <div class="grid items-start gap-4 lg:grid-cols-2">
+    <div class="card">
+      <h3 class="h3">Quick actions</h3>
+      <div class="flex flex-wrap gap-2.5">
+        <button class="btn btn-primary" data-go="scan">📷 Scan produce</button>
+        <button class="btn" data-go="listings">➕ New listing</button>
+        <button class="btn" data-go="sms">💬 Try SMS listing</button>
+      </div>
+      <h3 class="h3 mt-5">How it works</h3>
+      <ol class="grid list-decimal gap-2 pl-5 text-sm">
+        <li><b>Snap a photo.</b> AI identifies the crop and gives a Quality Grade with a tamper-proof certificate.</li>
+        <li><b>List it.</b> Buyers see the certified grade, so no one can call your A-grade "defective".</li>
+        <li><b>Share a truck.</b> Your crop joins other farmers' loads. Shipping cost drops for everyone.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3 class="h3">Recent activity</h3>
+      <ul id="activity" class="grid max-h-80 gap-2 overflow-auto text-sm"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- SCAN -->
+<section id="view-scan" class="view">
+  <h1 class="h1">AI Quality Scan</h1>
+  <p class="sub">Take a clear photo of one handful of produce in daylight. The scan gives crop type, grade and freshness window.</p>
+
+  <div class="grid items-start gap-4 lg:grid-cols-2">
+    <div class="card">
+      <label class="field">Crop
+        <select id="scanCrop" class="input"></select>
+      </label>
+      <label id="dropzone" class="mt-3 flex min-h-[220px] cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-brand-100 bg-brand-50 text-center">
+        <input type="file" id="photoInput" accept="image/*" capture="environment" class="hidden">
+        <img id="preview" class="hidden max-h-80 max-w-full" alt="Produce preview">
+        <div id="dropHint" class="grid gap-1 text-brand-800"><span class="text-4xl">📷</span><b>Tap to take or choose a photo</b><small>JPG / PNG</small></div>
+      </label>
+      <div class="mt-3 flex flex-wrap gap-2.5">
+        <button class="btn btn-primary flex-1" id="scanBtn" disabled>Analyse photo</button>
+        <button class="btn" id="scanReset">Reset</button>
+      </div>
+      <p id="engineNote" class="mt-2.5 text-xs text-slate-500"></p>
+    </div>
+
+    <div class="card" id="resultCard">
+      <div id="resultEmpty" class="px-3 py-10 text-center text-slate-500">Your grade and freshness window will appear here.</div>
+      <div id="resultBody" class="hidden">
+        <div class="mb-3.5 flex items-center gap-4">
+          <div class="ring relative grid h-[84px] w-[84px] flex-none place-items-center rounded-full" id="ring"><span id="ringVal" class="text-xl font-bold">0</span></div>
+          <div>
+            <small id="resCropLabel" class="text-xs text-slate-500">Detected crop</small>
+            <h2 id="resCrop" class="text-xl font-bold">—</h2>
+            <span id="resGrade" class="mt-1 inline-block rounded-full px-3 py-1 text-xs font-bold">—</span>
+          </div>
+        </div>
+        <div class="mb-3 flex items-center gap-2.5 rounded-xl bg-slate-50 px-3 py-2.5">
+          <span class="text-2xl">⏱️</span>
+          <div><small class="block text-[11px] text-slate-500">Freshness window</small><b id="resFresh">—</b></div>
+        </div>
+        <div id="metrics" class="mb-3 grid gap-2"></div>
+        <ul id="resNotes" class="mb-3 grid list-disc gap-1 pl-5 text-sm text-slate-500"></ul>
+        <div class="grid gap-1 rounded-xl border border-dashed border-brand-600 bg-brand-50/40 px-3 py-2.5">
+          <div><small class="block text-[11px] text-slate-500">Quality certificate</small><b id="certId" class="font-mono text-brand-800">—</b></div>
+          <div id="certMeta" class="break-all text-[11px] text-slate-500"></div>
+        </div>
+        <button class="btn btn-primary mt-3 w-full" id="useScan">Create listing with this grade →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LISTINGS -->
+<section id="view-listings" class="view">
+  <h1 class="h1">My Listings</h1>
+  <p class="sub">Buyers see these in the city marketplace. Certified grades earn better prices.</p>
+
+  <div class="card">
+    <h3 class="h3" id="formTitle">New listing</h3>
+    <form id="listingForm" class="grid gap-3 sm:grid-cols-2">
+      <label class="field">Crop<select id="lCrop" class="input" required></select></label>
+      <label class="field">Grade
+        <select id="lGrade" class="input"><option value="A">A – Premium Export</option><option value="B">B – Processing</option><option value="C">C – Low grade</option></select>
+      </label>
+      <label class="field">Quantity (kg)<input type="number" id="lQty" class="input" min="1" required placeholder="e.g. 120"></label>
+      <label class="field">Your price (₹/kg)<input type="number" id="lPrice" class="input" min="1" required placeholder="e.g. 140"></label>
+      <label class="field">Village<input type="text" id="lVillage" class="input" required></label>
+      <label class="field">Harvest date<input type="date" id="lHarvest" class="input" required></label>
+      <label class="field sm:col-span-2">Notes (optional)<input type="text" id="lNotes" class="input" placeholder="Organic, hand-picked, packed in crates…"></label>
+      <input type="hidden" id="lCert">
+      <div id="priceHint" class="hidden rounded-xl bg-amber-100 px-3 py-2 text-sm sm:col-span-2"></div>
+      <div class="flex flex-wrap gap-2.5 sm:col-span-2">
+        <button class="btn btn-primary" type="submit">Publish listing</button>
+        <button class="btn" type="button" id="lClear">Clear</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="mb-2.5 mt-6 flex items-center justify-between">
+    <h3 class="text-base font-bold">Your listings</h3>
+    <select id="filterStatus" class="input !py-2">
+      <option value="all">All</option><option value="open">Open</option><option value="pooled">In truck</option><option value="sold">Sold</option>
+    </select>
+  </div>
+  <div id="listingGrid" class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3"></div>
+</section>
+
+<!-- POOL -->
+<section id="view-pool" class="view">
+  <h1 class="h1">Shared Truck Pool</h1>
+  <p class="sub">Five farmers, one big truck. Everyone pays less per kg.</p>
+
+  <div class="grid items-start gap-4 lg:grid-cols-2">
+    <div class="card">
+      <h3 class="h3">Next truck: <span id="truckRoute">Ziro → Guwahati</span></h3>
+      <div class="h-6 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+        <div id="truckFill" class="h-full w-0 rounded-full bg-gradient-to-r from-brand-600 to-emerald-500 transition-all duration-500"></div>
+      </div>
+      <div class="mt-1.5 flex justify-between text-sm text-slate-500"><span id="truckKg">0 kg</span><span id="truckCap">of 1000 kg</span></div>
+      <div class="my-3 text-sm">🕒 Departs in <b id="countdown">—</b></div>
+      <h4 class="mb-1.5 text-sm font-semibold text-slate-500">Farmers on this truck</h4>
+      <ul id="farmers" class="grid gap-1.5 text-sm"></ul>
+    </div>
+    <div class="card">
+      <h3 class="h3">Shipping cost per kg</h3>
+      <div class="grid grid-cols-2 gap-2.5">
+        <div class="rounded-xl bg-red-100 p-3 text-center text-red-700"><small class="block font-semibold">Send alone</small><b id="soloCost" class="block text-2xl">₹40</b><em class="text-[11px] not-italic opacity-80">small truck, 200 kg</em></div>
+        <div class="rounded-xl bg-brand-50 p-3 text-center text-brand-800"><small class="block font-semibold">Shared truck</small><b id="poolCost" class="block text-2xl">₹18</b><em class="text-[11px] not-italic opacity-80">+3% pool fee on sales</em></div>
+      </div>
+      <p class="mt-2.5 text-xs text-slate-500">Figures are illustrative: ₹8,000 for a 200 kg mini-truck versus ₹18,000 for a 1,000 kg truck.</p>
+
+      <h3 class="h3 mt-5">Earnings calculator</h3>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="field">Quantity (kg)<input type="number" id="cQty" class="input" value="100" min="1"></label>
+        <label class="field">Fair Harvest price (₹/kg)<input type="number" id="cPrice" class="input" value="140" min="1"></label>
+        <label class="field sm:col-span-2">Middleman offer (₹/kg)<input type="number" id="cMid" class="input" value="85" min="1"></label>
+      </div>
+      <div id="calcOut" class="mt-3 grid gap-1.5 text-sm"></div>
+    </div>
+  </div>
+</section>
+
+<!-- SMS -->
+<section id="view-sms" class="view">
+  <h1 class="h1">Offline SMS Bridge</h1>
+  <p class="sub">No internet in the hills? Send a short SMS and your listing goes live. This simulator runs the same parser your backend would use.</p>
+
+  <div class="grid items-start gap-4 lg:grid-cols-2">
+    <div class="mx-auto w-full max-w-sm overflow-hidden rounded-[30px] border-8 border-slate-800 bg-[#ece5dd] shadow-sm">
+      <div class="bg-[#075e54] p-3 text-center text-sm font-semibold text-white">Fair Harvest · 56767</div>
+      <div id="thread" class="flex h-80 flex-col gap-2 overflow-auto p-3"></div>
+      <form id="smsForm" class="flex gap-1.5 bg-slate-100 p-2">
+        <input type="text" id="smsInput" class="flex-1 rounded-full border border-slate-300 px-3 py-2 text-sm outline-none" placeholder="GINGER 100 ZIRO" autocomplete="off">
+        <button class="btn btn-primary !rounded-full !px-4 !py-2" type="submit">Send</button>
+      </form>
+      <div class="chips flex flex-wrap gap-1.5 border-t border-slate-200 bg-slate-100 p-2">
+        <button type="button" data-sms="GINGER 100 ZIRO" class="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px]">GINGER 100 ZIRO</button>
+        <button type="button" data-sms="KIWI 60 TAWANG 150 A" class="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px]">KIWI 60 TAWANG 150 A</button>
+        <button type="button" data-sms="PRICE KIWI" class="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px]">PRICE KIWI</button>
+        <button type="button" data-sms="STATUS" class="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px]">STATUS</button>
+        <button type="button" id="missedCall" class="rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px]">📞 Missed call</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 class="h3">SMS format</h3>
+      <pre class="code">CROP  KG  VILLAGE  [PRICE]  [GRADE]
+
+GINGER 100 ZIRO
+KIWI 60 TAWANG 150 A
+PRICE KIWI     → today's fair price
+STATUS         → your open listings</pre>
+      <h3 class="h3 mt-5">Webhook payload received by backend</h3>
+      <pre id="payload" class="code">Waiting for an SMS…</pre>
+      <details class="mt-5">
+        <summary class="mb-2 cursor-pointer text-sm font-semibold">Backend sample (Node.js + Express)</summary>
+<pre class="code">// POST /sms-webhook  (Twilio / Exotel / MSG91 hits this)
+app.post('/sms-webhook', (req, res) => {
+  const { From, Body } = req.body;
+  const [crop, kg, village, price, grade] =
+        Body.trim().toUpperCase().split(/\s+/);
+  db.listings.upsert({
+    phone: From, crop, kg: +kg, village,
+    price: price ? +price : null,
+    grade: grade || 'PENDING', source: 'sms'
+  });
+  res.type('text/xml').send(
+    `&lt;Response&gt;&lt;Message&gt;OK ${crop} ${kg}kg listed&lt;/Message&gt;&lt;/Response&gt;`);
+});</pre>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ALERTS -->
+<section id="view-alerts" class="view">
+  <h1 class="h1">Harvest Alerts</h1>
+  <p class="sub">Tell VIP buyers what is coming. They get first access and book your best crop early.</p>
+  <div class="grid items-start gap-4 lg:grid-cols-2">
+    <div class="card">
+      <h3 class="h3">Announce an upcoming harvest</h3>
+      <form id="alertForm" class="grid gap-3 sm:grid-cols-2">
+        <label class="field">Crop<select id="aCrop" class="input"></select></label>
+        <label class="field">Expected quantity (kg)<input type="number" id="aQty" class="input" min="1" required></label>
+        <label class="field">Expected harvest date<input type="date" id="aDate" class="input" required></label>
+        <label class="field">Asking price (₹/kg)<input type="number" id="aPrice" class="input" min="1"></label>
+        <div class="sm:col-span-2"><button class="btn btn-primary" type="submit">Notify VIP buyers</button></div>
+      </form>
+    </div>
+    <div class="card">
+      <h3 class="h3">Your announced harvests</h3>
+      <ul id="alertList" class="grid max-h-80 gap-2 overflow-auto text-sm"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- SETTINGS -->
+<section id="view-settings" class="view">
+  <h1 class="h1 mb-4">Settings</h1>
+  <div class="card max-w-2xl">
+    <form id="settingsForm" class="grid gap-3 sm:grid-cols-2">
+      <label class="field">Your name<input type="text" id="sName" class="input"></label>
+      <label class="field">Village / Co-op<input type="text" id="sVillage" class="input"></label>
+      <label class="field sm:col-span-2">Phone number<input type="tel" id="sPhone" class="input" placeholder="+91…"></label>
+      <label class="field sm:col-span-2">Gemini API key (optional, enables real vision AI)
+        <input type="password" id="sKey" class="input" placeholder="Paste key from Google AI Studio">
+      </label>
+      <label class="field sm:col-span-2">Gemini model<input type="text" id="sModel" class="input" placeholder="gemini-2.0-flash"></label>
+      <p class="text-xs text-slate-500 sm:col-span-2">Without a key the app uses a built-in colour and texture analysis that works offline. The key is stored only in this browser.</p>
+      <div class="flex flex-wrap gap-2.5 sm:col-span-2">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <button class="btn btn-danger" type="button" id="resetData">Reset demo data</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+</div>
+</main>
+
+<div id="toast" class="fixed bottom-24 left-1/2 z-50 hidden max-w-[92vw] -translate-x-1/2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm text-white shadow-xl md:bottom-6"></div>
+<canvas id="work" class="hidden"></canvas>
+<script src="/js/app.js"></script>
+</body>
+</html>
