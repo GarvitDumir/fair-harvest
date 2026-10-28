@@ -81,8 +81,28 @@
 <main class="md:pl-40">
 <div class="mx-auto max-w-6xl p-4 md:p-6">
 
-<!-- DASHBOARD -->
+
 <section id="view-dashboard" class="view active">
+    
+<div class="bg-emerald-800 text-white p-4 rounded-2xl shadow-md space-y-3 mb-4">
+  <p class="text-xs text-emerald-200 font-semibold uppercase tracking-wider">
+    🤖 AI Smart Assistance
+  </p>
+
+  <div class="grid grid-cols-2 gap-3">
+    <button onclick="handleVoiceInput()"
+      class="bg-emerald-600 hover:bg-emerald-500 py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 text-sm font-semibold transition">
+      🎤 Speak Listing
+    </button>
+
+   
+  </div>
+
+  <p id="ai-status"
+     class="text-xs text-emerald-100 hidden bg-emerald-900/60 p-2 rounded-lg">
+  </p>
+</div>
+
   <h1 class="h1">Namaste, <span id="dashName">Farmer</span> 👋</h1>
   <p class="sub">Grade your produce, list it, and ship it together with your village. No middlemen.</p>
 
@@ -199,7 +219,7 @@
   <div id="listingGrid" class="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-3"></div>
 </section>
 
-<!-- POOL -->
+
 <section id="view-pool" class="view">
   <h1 class="h1">Shared Truck Pool</h1>
   <p class="sub">Five farmers, one big truck. Everyone pays less per kg.</p>
@@ -234,7 +254,7 @@
   </div>
 </section>
 
-<!-- SMS -->
+
 <section id="view-sms" class="view">
   <h1 class="h1">Offline SMS Bridge</h1>
   <p class="sub">No internet in the hills? Send a short SMS and your listing goes live. This simulator runs the same parser your backend would use.</p>
@@ -286,7 +306,7 @@ app.post('/sms-webhook', (req, res) => {
   </div>
 </section>
 
-<!-- ALERTS -->
+
 <section id="view-alerts" class="view">
   <h1 class="h1">Harvest Alerts</h1>
   <p class="sub">Tell VIP buyers what is coming. They get first access and book your best crop early.</p>
@@ -308,7 +328,7 @@ app.post('/sms-webhook', (req, res) => {
   </div>
 </section>
 
-<!-- SETTINGS -->
+
 <section id="view-settings" class="view">
   <h1 class="h1 mb-4">Settings</h1>
   <div class="card max-w-2xl">
