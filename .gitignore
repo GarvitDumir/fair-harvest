@@ -4,9 +4,4 @@ node_modules/
 .env.*
 !.env.example
 npm-debug.log*
-
-node_modules/
-.env
-.env.*
-!.env.example
-npm-debug.log*
+git check-ignore .env
