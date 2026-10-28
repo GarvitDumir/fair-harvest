@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Fair Harvest – Seller</title>
 
-<!-- Tailwind CSS (Play CDN) -->
+
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
@@ -19,7 +19,7 @@
   };
 </script>
 
-<!-- Reusable component classes built from Tailwind utilities -->
+
 <style type="text/tailwindcss">
   @layer components {
     .btn { @apply cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 font-semibold transition hover:bg-brand-50; }
@@ -40,7 +40,7 @@
   }
 </style>
 
-<!-- The only plain CSS: the score ring needs a conic-gradient driven by --p -->
+
 <style>
   .ring { background: conic-gradient(#2f6b3a calc(var(--p, 0) * 1%), #e2e8f0 0); }
   .ring::before { content: ""; position: absolute; inset: 8px; background: #fff; border-radius: 50%; }
@@ -115,7 +115,7 @@
   </div>
 </section>
 
-<!-- SCAN -->
+
 <section id="view-scan" class="view">
   <h1 class="h1">AI Quality Scan</h1>
   <p class="sub">Take a clear photo of one handful of produce in daylight. The scan gives crop type, grade and freshness window.</p>
@@ -164,7 +164,7 @@
   </div>
 </section>
 
-<!-- LISTINGS -->
+
 <section id="view-listings" class="view">
   <h1 class="h1">My Listings</h1>
   <p class="sub">Buyers see these in the city marketplace. Certified grades earn better prices.</p>
@@ -335,5 +335,7 @@ app.post('/sms-webhook', (req, res) => {
 <div id="toast" class="fixed bottom-24 left-1/2 z-50 hidden max-w-[92vw] -translate-x-1/2 rounded-xl bg-slate-800 px-4 py-2.5 text-sm text-white shadow-xl md:bottom-6"></div>
 <canvas id="work" class="hidden"></canvas>
 <script src="/js/app.js"></script>
+<script src="js/seed-data.js"></script>
+  <script src="js/ai-features.js"></script>
 </body>
 </html>
