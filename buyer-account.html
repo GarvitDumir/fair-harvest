@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Fair Harvest — Buyer Account</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config={theme:{extend:{
+colors:{forest:'#215D2E',pink:'#FFAEC7',cream:'#FBF2E7',yellow:'#F9DD34',green:'#0DB84B',brightYellow:'#FFE339',lightPink:'#FFF8FA'},
+fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif']},
+boxShadow:{soft:'0 20px 60px rgba(33,93,46,.10)',card:'0 12px 40px rgba(33,93,46,.08)'},
+animation:{blob:'blob 10s ease-in-out infinite',pulseSoft:'pulseSoft 2.5s ease-in-out infinite'},
+keyframes:{blob:{'0%,100%':{transform:'translate(0,0) scale(1)'},'33%':{transform:'translate(30px,-20px) scale(1.05)'},'66%':{transform:'translate(-20px,20px) scale(.95)'}},
+pulseSoft:{'0%,100%':{transform:'scale(1)',opacity:'1'},'50%':{transform:'scale(1.05)',opacity:'.85'}}}}}};
+</script>
+<style>
+html{scroll-behavior:smooth}body{background:#FFAEC7;color:#215D2E;overflow-x:hidden}*{box-sizing:border-box}
+.glass{background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+.crop-card{transition:transform .35s ease,box-shadow .35s ease}.crop-card:hover{transform:translateY(-8px);box-shadow:0 24px 55px rgba(33,93,46,.14)}
+.nav-link{position:relative}.nav-link::after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:2px;background:#0DB84B;transform:scaleX(0);transition:transform .25s ease}.nav-link:hover::after{transform:scaleX(1)}
+.hero-grid{background-image:linear-gradient(rgba(33,93,46,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(33,93,46,.035) 1px,transparent 1px);background-size:42px 42px}
+.gradient-text{background:linear-gradient(90deg,#215D2E,#0DB84B);-webkit-background-clip:text;background-clip:text;color:transparent}
+.search-focus:focus-within{box-shadow:0 0 0 4px rgba(13,184,75,.12)}.heart-active{color:#ef476f;background:#fff0f4!important}
+header.fixed{padding-top:calc(1rem + env(safe-area-inset-top,0px))}
+.fld{width:100%;border-radius:.75rem;border:2px solid rgba(33,93,46,.12);background:#fff;padding:.7rem .9rem;font-size:.875rem;font-weight:600;color:#215D2E;outline:none;transition:border-color .2s,box-shadow .2s}
+.fld:focus{border-color:#0DB84B;box-shadow:0 0 0 4px rgba(13,184,75,.12)}.fld[aria-invalid=true]{border-color:#e5484d;background:#fff6f6}
+.err{margin-top:.25rem;font-size:.75rem;font-weight:700;color:#c2272d}
+</style>
+</head>
+<body>
+<header class="fixed left-0 right-0 top-0 z-50 px-4 pt-4"><nav class="glass mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-white/60 px-4 py-3 shadow-soft sm:px-6">
+<a href="marketplace.html" class="flex items-center gap-3"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-forest text-xl shadow-sm">🌾</div><div><div class="text-lg font-black tracking-tight text-forest">Fair Harvest</div><div class="text-[10px] font-bold uppercase tracking-[.2em] text-forest/55">Buyer Account</div></div></a>
+<div class="hidden items-center gap-8 md:flex"><a href="marketplace.html" class="nav-link text-sm font-bold">Marketplace</a><a href="#orders" class="nav-link text-sm font-bold">My orders</a><a href="#saved" class="nav-link text-sm font-bold">Saved</a></div>
+<a href="marketplace.html" class="rounded-xl bg-green px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-forest">← Marketplace</a></nav></header>
+<main>
+<section class="hero-grid relative overflow-hidden px-5 pb-10 pt-32 lg:px-8"><div class="absolute -left-32 top-24 h-80 w-80 animate-blob rounded-full bg-yellow/50 blur-3xl"></div><div class="relative mx-auto max-w-7xl" id="heroT"></div></section>
+<section class="bg-lightPink px-5 pb-24 pt-10 lg:px-8"><div class="mx-auto max-w-7xl" id="app"></div></section>
+</main>
+<footer class="bg-forest px-5 py-8 text-center text-xs font-semibold text-white/50">© 2026 Fair Harvest · Account details are stored on this device only in this demo.</footer>
+<div id="toast" role="status" class="fixed bottom-6 left-1/2 z-[120] hidden max-w-[92vw] -translate-x-1/2 rounded-xl bg-forest px-5 py-3 text-sm font-bold text-white shadow-xl"></div>
+
+<script>
+const $=id=>document.getElementById(id),rs=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const L=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},W=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const STATES=['Arunachal Pradesh','Assam','Manipur','Meghalaya','Mizoram','Nagaland','Sikkim','Tripura','Andhra Pradesh','Bihar','Delhi','Gujarat','Karnataka','Kerala','Maharashtra','Odisha','Punjab','Rajasthan','Tamil Nadu','Telangana','Uttar Pradesh','West Bengal','Other'];
+const TYPES=[['hotel','🏨','Hotel or restaurant'],['trader','🏪','Retail trader'],['wholesale','🚛','Wholesaler or mandi agent'],['processor','🏭','Food processor'],['brand','⭐','Specialty brand'],['individual','🏠','Individual or household']];
+const INTS=[['fruit','🍊','Fruits'],['veg','🥬','Vegetables'],['spice','🌶️','Spices'],['tea','🍵','Tea & coffee'],['grain','🌾','Grains'],['pulse','🫘','Pulses'],['honey','🍯','Honey & dairy'],['mushroom','🍄','Mushrooms'],['nut','🥜','Nuts'],['herb','🎋','Herbs & forest']];
+const DELS=[['shared','Shared truck','Cheapest · 3 to 5 days','₹12/kg'],['standard','Standard','2 to 3 days','₹17/kg'],['express','Express','Next day','₹24/kg']];
+const VOLS=['Under 100 kg','100 to 500 kg','500 to 2,000 kg','Above 2,000 kg'],PAYS=['UPI','Bank transfer (NEFT/RTGS)','Pay on delivery'];
+const tn=k=>(TYPES.find(t=>t[0]===k)||[0,'',''])[2];
+let buyer=L('fh.buyer',null),T='',INT=[],DL='shared',tab='overview';
+const fromMarket=new URLSearchParams(location.search).get('from')==='market';
+function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hidden'),3200)}
+const mask=m=>'+91 '+m.slice(0,2)+'XXXXXX'+m.slice(-2);
+const myOrders=()=>L('fh.orders',[]).filter(o=>buyer&&o.buyerId===buyer.id);
+
+
+const fl=(id,label,inner,span)=>`<div class="${span?'sm:col-span-2':''}"><label for="f-${id}" class="mb-1.5 block text-xs font-black uppercase tracking-widest text-forest/60">${label}</label>${inner}<div id="e-${id}" class="err" role="alert"></div></div>`;
+const inp=(id,b,extra='')=>`<input id="f-${id}" class="fld" value="${esc(b[id]||'')}" ${extra}>`;
+function formHtml(b,edit){T=b.type||'';INT=(b.interests||[]).slice();DL=b.delivery||'shared';
+ const sec=(n,t,s)=>`<div class="mb-4 mt-8 flex items-center gap-3 first:mt-0"><span class="flex h-8 w-8 items-center justify-center rounded-xl bg-yellow text-sm font-black">${n}</span><div><h3 class="text-lg font-black">${t}</h3><p class="text-xs font-semibold text-forest/50">${s}</p></div></div>`;
+ return`<form id="form" novalidate class="rounded-3xl bg-white p-6 shadow-card sm:p-8">
+${sec(1,'About you','Required to place orders')}<div class="grid gap-4 sm:grid-cols-2">
+${fl('name','Full name',inp('name',b,'maxlength="60" autocomplete="name" placeholder="e.g. Tashi Dorjee"'))}
+${fl('mobile','Mobile number',`<div class="flex"><span class="flex items-center rounded-l-xl border-2 border-r-0 border-forest/10 bg-cream px-3 text-sm font-black">+91</span><input id="f-mobile" class="fld !rounded-l-none" inputmode="numeric" maxlength="10" autocomplete="tel-national" placeholder="10-digit number" value="${esc(b.mobile||'')}"></div><div id="mc" class="mt-1 text-right text-xs font-bold text-forest/45">0/10 digits</div>`)}
+${fl('email','Email (optional)',inp('email',b,'type="email" autocomplete="email" placeholder="you@business.com"'),1)}</div>
+${sec(2,'Delivery location','Where should produce arrive?')}<div class="grid gap-4 sm:grid-cols-2">
+${fl('state','State',`<select id="f-state" class="fld"><option value="">Select state</option>${STATES.map(s=>`<option ${b.state===s?'selected':''}>${s}</option>`).join('')}</select>`)}
+${fl('city','District or city',inp('city',b,'maxlength="50" autocomplete="address-level2" placeholder="e.g. Guwahati"'))}
+${fl('pin','PIN code',inp('pin',b,'inputmode="numeric" maxlength="6" autocomplete="postal-code" placeholder="6 digits"'))}
+${fl('address','Street address',`<textarea id="f-address" rows="2" maxlength="160" class="fld" autocomplete="street-address" placeholder="House or shop no., street, landmark">${esc(b.address||'')}</textarea>`,1)}</div>
+${sec(3,'Your business','Helps us match the right farmers')}
+<div id="types" class="grid grid-cols-2 gap-2 sm:grid-cols-3"></div><div id="e-type" class="err" role="alert"></div>
+<div class="mt-4 grid gap-4 sm:grid-cols-2">${fl('business','Business name',inp('business',b,'maxlength="80" placeholder="Hotel, shop or company name"'))}${fl('gstin','GSTIN (optional)',inp('gstin',b,'maxlength="15" placeholder="15-character GST number" style="text-transform:uppercase"'))}</div>
+${sec(4,'Buying preferences','Used to sort and recommend produce')}
+<div class="text-xs font-black uppercase tracking-widest text-forest/60">I buy</div><div id="ints" class="mt-2 flex flex-wrap gap-2"></div>
+<div class="mt-4 grid gap-4 sm:grid-cols-2">${fl('volume','Typical monthly volume',`<select id="f-volume" class="fld"><option value="">Select</option>${VOLS.map(s=>`<option ${b.volume===s?'selected':''}>${s}</option>`).join('')}</select>`)}${fl('payment','Preferred payment',`<select id="f-payment" class="fld">${PAYS.map(s=>`<option ${b.payment===s?'selected':''}>${s}</option>`).join('')}</select>`)}</div>
+<div class="mt-4 text-xs font-black uppercase tracking-widest text-forest/60">Delivery speed</div><div id="dels" class="mt-2 grid gap-2 sm:grid-cols-3"></div>
+<label class="mt-5 flex cursor-pointer items-center gap-3 text-sm font-bold"><input id="f-wa" type="checkbox" class="h-4 w-4 accent-green" ${b.whatsapp!==false?'checked':''}> Send order updates on WhatsApp</label>
+${edit?'':`<label class="mt-3 flex cursor-pointer items-start gap-3 text-sm font-bold"><input id="f-terms" type="checkbox" class="mt-0.5 h-4 w-4 accent-green"> <span>I agree to the Fair Harvest buyer terms and to be contacted about my orders.</span></label><div id="e-terms" class="err" role="alert"></div>`}
+<button type="submit" class="mt-7 w-full rounded-xl bg-green py-4 text-base font-black text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-forest">${edit?'Save changes':'Create buyer account'}</button></form>`}
+function paintChoices(){
+ $('types').innerHTML=TYPES.map(t=>`<button type="button" onclick="pickType('${t[0]}')" aria-pressed="${T===t[0]}" class="flex flex-col items-center gap-1 rounded-2xl border-2 p-3 text-center text-sm font-black transition ${T===t[0]?'border-green bg-white shadow-card':'border-transparent bg-cream'}"><span class="text-3xl">${t[1]}</span>${t[2]}</button>`).join('');
+ $('ints').innerHTML=INTS.map(t=>`<button type="button" onclick="pickInt('${t[0]}')" aria-pressed="${INT.includes(t[0])}" class="rounded-full border-2 px-3.5 py-2 text-sm font-black transition ${INT.includes(t[0])?'border-green bg-white':'border-transparent bg-cream'}">${t[1]} ${t[2]}</button>`).join('');
+ $('dels').innerHTML=DELS.map(t=>`<button type="button" onclick="pickDel('${t[0]}')" aria-pressed="${DL===t[0]}" class="rounded-2xl border-2 p-3 text-left transition ${DL===t[0]?'border-green bg-white shadow-card':'border-transparent bg-cream'}"><div class="text-sm font-black">${t[1]} <span class="text-green">${t[3]}</span></div><div class="text-xs font-semibold text-forest/55">${t[2]}</div></button>`).join('')}
+const pickType=k=>{T=k;setErr('type','');paintChoices()},pickInt=k=>{INT=INT.includes(k)?INT.filter(x=>x!==k):INT.concat(k);paintChoices()},pickDel=k=>{DL=k;paintChoices()};
+function setErr(id,m){const e=$('e-'+id);if(e)e.textContent=m;const f=$('f-'+id);if(f)f.setAttribute('aria-invalid',m?'true':'false')}
+function validate(edit){const v=id=>($('f-'+id)?$('f-'+id).value:'').trim(),E={},d={name:v('name'),mobile:v('mobile'),email:v('email'),state:v('state'),city:v('city'),pin:v('pin'),address:v('address'),business:v('business'),gstin:v('gstin').toUpperCase(),volume:v('volume'),payment:v('payment')};
+ if(!/^[\p{L}][\p{L} .'’-]{1,59}$/u.test(d.name))E.name='Enter your full name: letters only, 2 to 60 characters.';
+ if(d.mobile.length!==10)E.mobile=`Mobile number must be exactly 10 digits (you entered ${d.mobile.length}).`;else if(!/^[6-9]\d{9}$/.test(d.mobile))E.mobile='Indian mobile numbers start with 6, 7, 8 or 9.';
+ if(d.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email))E.email='Enter a valid email address, or leave it empty.';
+ if(!d.state)E.state='Choose your state.';
+ if(!/^[\p{L}][\p{L} .'’-]{1,49}$/u.test(d.city))E.city='Enter your district or city (letters only).';
+ if(!/^[1-9]\d{5}$/.test(d.pin))E.pin='PIN code must be exactly 6 digits.';
+ if(d.address.length<8)E.address='Enter a street address (at least 8 characters).';
+ if(!T)E.type='Choose what best describes you.';
+ if(T&&T!=='individual'&&d.business.length<2)E.business='Enter your business name.';
+ if(d.gstin&&!/^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(d.gstin))E.gstin='GSTIN looks wrong. It has 15 characters, e.g. 18ABCDE1234F1Z5.';
+ if(!edit&&!$('f-terms').checked)E.terms='Please accept the terms to continue.';
+ d.type=T;d.interests=INT.slice();d.delivery=DL;d.whatsapp=$('f-wa').checked;return{E,d}}
+function wire(edit){paintChoices();const m=$('f-mobile'),cnt=()=>{$('mc').textContent=m.value.length+'/10 digits'};
+ m.addEventListener('input',()=>{m.value=m.value.replace(/\D/g,'').slice(0,10);cnt();if(m.getAttribute('aria-invalid')==='true')check('mobile',edit)});cnt();
+ $('f-pin').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,6)});
+ $('f-gstin').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'')});
+ ['name','mobile','email','state','city','pin','address','business','gstin'].forEach(id=>$('f-'+id).addEventListener('blur',()=>check(id,edit)));
+ $('form').addEventListener('submit',e=>{e.preventDefault();const{E,d}=validate(edit);['name','mobile','email','state','city','pin','address','type','business','gstin','terms'].forEach(id=>setErr(id,E[id]||''));
+  const first=Object.keys(E)[0];if(first){const t=$('f-'+first)||$(first==='type'?'types':'form');t.scrollIntoView({behavior:'smooth',block:'center'});if(t.focus)t.focus({preventScroll:true});return toast('Please fix the highlighted fields.')}
+  edit?saveEdit(d):register(d)})}
+function check(id,edit){const{E}=validate(edit);setErr(id,E[id]||'')}
+
+
+function register(d){buyer={...d,id:'FHB-'+String(Math.floor(Math.random()*900000)+100000),created:Date.now(),addresses:[]};W('fh.buyer',buyer);
+ if(fromMarket){heroT();$('app').innerHTML=`<div class="mx-auto max-w-xl rounded-3xl bg-white p-10 text-center shadow-card"><div class="text-6xl">🎉</div><h2 class="mt-4 text-3xl font-black">You’re all set, ${esc(buyer.name.split(' ')[0])}.</h2><p class="mt-3 text-sm font-medium text-forest/60">Your buyer ID is <b>${buyer.id}</b>. Your basket is waiting in the marketplace.</p><a href="marketplace.html" class="mt-7 block rounded-xl bg-green py-3.5 text-sm font-black text-white hover:bg-forest">Continue to the marketplace →</a><button onclick="location.href='buyer-account.html'" class="mt-2 w-full py-2 text-sm font-bold text-forest/60">View my account</button></div>`}
+ else{toast('Account created');tab='overview';draw()}scrollTo(0,0)}
+function saveEdit(d){buyer={...buyer,...d};W('fh.buyer',buyer);toast('Changes saved');draw()}
+function delAcct(){if(!confirm('Delete your buyer account, orders and saved items from this device?'))return;W('fh.orders',L('fh.orders',[]).filter(o=>o.buyerId!==buyer.id));localStorage.removeItem('fh.buyer');localStorage.removeItem('fh.wish');localStorage.removeItem('fh.cart');buyer=null;draw()}
+function exportData(){const b=new Blob([JSON.stringify({buyer,orders:myOrders(),saved:L('fh.wish',[])},null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='fair-harvest-my-data.json';a.click()}
+function rmWish(id){W('fh.wish',L('fh.wish',[]).filter(x=>x.id!==id));draw()}
+function addAddr(e){e.preventDefault();const g=id=>$('a-'+id).value.trim(),a={label:g('label'),address:g('address'),city:g('city'),pin:g('pin')};
+ let m='';if(a.address.length<8)m='Enter a street address (at least 8 characters).';else if(!/^[\p{L}][\p{L} .'’-]{1,49}$/u.test(a.city))m='Enter a valid city.';else if(!/^[1-9]\d{5}$/.test(a.pin))m='PIN code must be exactly 6 digits.';
+ $('a-err').textContent=m;if(m)return;buyer.addresses=(buyer.addresses||[]).concat(a);W('fh.buyer',buyer);toast('Address added');draw()}
+function rmAddr(i){buyer.addresses.splice(i,1);W('fh.buyer',buyer);draw()}
+
+
+function heroT(){$('heroT').innerHTML=buyer?`<div class="mb-4 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-white/75 px-4 py-2 text-xs font-black shadow-sm"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-green"></span>${buyer.id}</div><h1 class="max-w-4xl text-4xl font-black leading-[1] tracking-[-.04em] sm:text-6xl">Welcome, <span class="gradient-text">${esc(buyer.name.split(' ')[0])}.</span></h1>`
+ :`<div class="mb-4 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-white/75 px-4 py-2 text-xs font-black shadow-sm"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-green"></span>Free for buyers</div><h1 class="max-w-4xl text-4xl font-black leading-[1] tracking-[-.04em] sm:text-6xl">Create your <span class="gradient-text">buyer account.</span></h1><p class="mt-5 max-w-xl text-base font-medium leading-7 text-forest/70 sm:text-lg">Tell us who you are and where to deliver. It takes about two minutes.</p>`}
+function complete(b){let s=0;['name','mobile','state','city','pin','address','type'].forEach(k=>{if(b[k])s+=10});if(b.email)s+=10;if(b.business||b.type==='individual')s+=5;if(b.gstin)s+=5;if((b.interests||[]).length)s+=5;if(b.volume)s+=5;return s}
+function orderCard(o){return`<article class="rounded-2xl border border-forest/5 bg-white p-5 shadow-card"><div class="flex flex-wrap items-center justify-between gap-2"><div><div class="font-black">${o.id}</div><div class="text-xs font-semibold text-forest/50">${new Date(o.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})} · ${o.delivery}</div></div><span class="rounded-full bg-yellow px-3 py-1 text-xs font-black">${o.status}</span></div>
+<div class="mt-3 divide-y divide-forest/10 text-sm font-semibold">${o.items.map(i=>`<div class="flex justify-between py-2"><span>${i.icon} ${esc(i.name)} · ${i.qty} kg</span><span>${rs(i.price*i.qty)}</span></div>`).join('')}</div>
+<div class="mt-2 flex justify-between border-t border-forest/10 pt-3 font-black"><span>Total (incl. fee and freight)</span><span>${rs(o.total)}</span></div><p class="mt-2 text-xs font-semibold text-forest/50">📍 ${esc(o.to)}</p></article>`}
+const empty=(i,t,s,l)=>`<div class="rounded-3xl bg-white p-12 text-center shadow-card"><div class="text-5xl">${i}</div><h3 class="mt-4 text-xl font-black">${t}</h3><p class="mt-2 text-sm font-medium text-forest/55">${s}</p><a href="marketplace.html" class="mt-5 inline-block rounded-xl bg-green px-5 py-3 text-sm font-black text-white hover:bg-forest">${l}</a></div>`;
+function tabHtml(){const O=myOrders(),Wl=L('fh.wish',[]);
+ if(tab==='orders')return O.length?`<div class="space-y-4">${O.map(orderCard).join('')}</div>`:empty('📦','No orders yet','Orders you place in the marketplace will appear here.','Browse the marketplace');
+ if(tab==='saved')return Wl.length?`<div class="grid gap-4 sm:grid-cols-2">${Wl.map(w=>`<div class="flex items-center gap-4 rounded-2xl bg-white p-4 shadow-card"><div class="flex h-16 w-16 items-center justify-center rounded-xl bg-cream text-4xl">${w.icon}</div><div class="flex-1"><div class="font-black">${esc(w.name)}</div><div class="text-sm font-bold text-green">₹${w.price}/kg</div></div><button onclick="rmWish(${w.id})" class="text-xs font-black text-red-500">Remove</button></div>`).join('')}</div>`:empty('♡','Nothing saved yet','Tap the heart on any product to keep it here.','Find produce');
+ if(tab==='addresses'){const A=buyer.addresses||[];return`<div class="space-y-3"><div class="rounded-2xl bg-white p-5 shadow-card"><span class="rounded-full bg-green/10 px-3 py-1 text-xs font-black text-green">Primary</span><p class="mt-2 font-bold">${esc(buyer.address)}</p><p class="text-sm font-semibold text-forest/55">${esc(buyer.city)}, ${esc(buyer.state)} ${buyer.pin}</p></div>
+${A.map((a,i)=>`<div class="flex items-start justify-between gap-3 rounded-2xl bg-white p-5 shadow-card"><div><span class="rounded-full bg-cream px-3 py-1 text-xs font-black">${esc(a.label)}</span><p class="mt-2 font-bold">${esc(a.address)}</p><p class="text-sm font-semibold text-forest/55">${esc(a.city)} ${a.pin}</p></div><button onclick="rmAddr(${i})" class="text-xs font-black text-red-500">Remove</button></div>`).join('')}
+${A.length<3?`<form onsubmit="addAddr(event)" class="rounded-2xl bg-white p-5 shadow-card"><h3 class="font-black">Add another delivery address</h3><div class="mt-3 grid gap-3 sm:grid-cols-2"><select id="a-label" class="fld"><option>Warehouse</option><option>Branch</option><option>Home</option><option>Other</option></select><input id="a-city" class="fld" placeholder="City" maxlength="50"><input id="a-address" class="fld sm:col-span-2" placeholder="Street address" maxlength="160"><input id="a-pin" class="fld" placeholder="PIN code" inputmode="numeric" maxlength="6" oninput="this.value=this.value.replace(/\\D/g,'')"></div><div id="a-err" class="err" role="alert"></div><button class="mt-3 rounded-xl bg-green px-5 py-3 text-sm font-black text-white hover:bg-forest">Add address</button></form>`:'<p class="text-sm font-bold text-forest/55">You have reached the limit of 3 extra addresses.</p>'}</div>`}
+ if(tab==='settings')return`<div id="formBox">${formHtml(buyer,true)}</div><div class="mt-6 rounded-3xl border-2 border-red-200 bg-white p-6"><h3 class="font-black">Your data</h3><p class="mt-1 text-sm font-medium text-forest/60">Download a copy, or delete your account from this device.</p><div class="mt-4 flex flex-wrap gap-3"><button onclick="exportData()" class="rounded-xl bg-cream px-4 py-2.5 text-sm font-black">Download my data</button><button onclick="delAcct()" class="rounded-xl bg-red-500 px-4 py-2.5 text-sm font-black text-white">Delete account</button></div></div>`;
+ return`<div class="space-y-5"><div class="grid gap-3 sm:grid-cols-4">${[['Orders',O.length],['Total spent',rs(O.reduce((a,o)=>a+o.total,0))],['Saved items',Wl.length],['Addresses',1+(buyer.addresses||[]).length]].map(s=>`<div class="rounded-2xl bg-white p-4 shadow-card"><div class="text-xs font-bold text-forest/50">${s[0]}</div><div class="mt-1 text-2xl font-black">${s[1]}</div></div>`).join('')}</div>
+<div class="rounded-3xl bg-white p-6 shadow-card"><div class="flex items-center justify-between"><h3 class="text-lg font-black">Recent orders</h3><a href="#orders" class="text-xs font-black text-green underline">See all</a></div><div class="mt-3 space-y-3">${O.length?O.slice(0,2).map(orderCard).join(''):'<p class="text-sm font-medium text-forest/55">No orders yet. <a href="marketplace.html" class="font-black text-green underline">Browse the marketplace</a></p>'}</div></div>
+<div class="rounded-3xl bg-white p-6 shadow-card"><h3 class="text-lg font-black">Your preferences</h3><div class="mt-3 flex flex-wrap gap-2">${(buyer.interests||[]).map(k=>{const t=INTS.find(x=>x[0]===k);return`<span class="rounded-full bg-cream px-3 py-1.5 text-sm font-black">${t[1]} ${t[2]}</span>`}).join('')||'<span class="text-sm font-medium text-forest/55">No crops chosen yet.</span>'}</div><dl class="mt-4 grid gap-3 text-sm sm:grid-cols-3"><div><dt class="text-xs font-bold text-forest/50">Monthly volume</dt><dd class="font-black">${esc(buyer.volume||'Not set')}</dd></div><div><dt class="text-xs font-bold text-forest/50">Delivery</dt><dd class="font-black">${DELS.find(d=>d[0]===buyer.delivery)[1]}</dd></div><div><dt class="text-xs font-bold text-forest/50">Payment</dt><dd class="font-black">${esc(buyer.payment)}</dd></div></dl></div></div>`}
+function draw(){heroT();const app=$('app');
+ if(!buyer){app.innerHTML=`<div class="grid items-start gap-8 lg:grid-cols-[.8fr_1.2fr]"><div class="rounded-[2rem] bg-forest p-8 text-white lg:sticky lg:top-28"><h2 class="text-3xl font-black tracking-tight">Why create an account?</h2><div class="mt-6 space-y-5">${[['📦','Order in bulk','Pool-ready lots from verified farmers across eight states.'],['📍','Saved delivery points','Keep up to four addresses for hotels, shops or warehouses.'],['🚚','Cheaper freight','Choose shared-truck delivery and cut transport cost.'],['🔔','Early harvest alerts','Pick the crops you buy and see them first.']].map(x=>`<div class="flex gap-4"><div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl">${x[0]}</div><div><div class="font-black">${x[1]}</div><div class="text-sm font-medium text-white/60">${x[2]}</div></div></div>`).join('')}</div></div><div>${formHtml({},false)}</div></div>`;wire(false);return}
+ const c=complete(buyer);
+ app.innerHTML=`<div class="grid items-start gap-8 lg:grid-cols-[340px_1fr]"><aside class="rounded-3xl bg-white p-6 shadow-card lg:sticky lg:top-28"><div class="flex items-center gap-4"><div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-forest text-2xl font-black text-white">${esc(buyer.name[0].toUpperCase())}</div><div class="min-w-0"><div class="truncate text-lg font-black">${esc(buyer.name)}</div><div class="text-xs font-bold text-forest/50">${tn(buyer.type)}</div></div></div>
+<dl class="mt-5 space-y-3 text-sm"><div><dt class="text-xs font-bold text-forest/50">Mobile</dt><dd class="font-black">${mask(buyer.mobile)}</dd></div>${buyer.email?`<div><dt class="text-xs font-bold text-forest/50">Email</dt><dd class="break-all font-black">${esc(buyer.email)}</dd></div>`:''}<div><dt class="text-xs font-bold text-forest/50">Location</dt><dd class="font-black">${esc(buyer.city)}, ${esc(buyer.state)} ${buyer.pin}</dd></div>${buyer.business?`<div><dt class="text-xs font-bold text-forest/50">Business</dt><dd class="font-black">${esc(buyer.business)}</dd></div>`:''}${buyer.gstin?`<div><dt class="text-xs font-bold text-forest/50">GSTIN</dt><dd class="font-black">${esc(buyer.gstin)}</dd></div>`:''}<div><dt class="text-xs font-bold text-forest/50">Member since</dt><dd class="font-black">${new Date(buyer.created).toLocaleDateString('en-IN',{month:'long',year:'numeric'})}</dd></div></dl>
+<div class="mt-5"><div class="flex justify-between text-xs font-black"><span>Profile complete</span><span>${c}%</span></div><div class="mt-1.5 h-2 overflow-hidden rounded-full bg-cream"><div class="h-full rounded-full bg-green" style="width:${c}%"></div></div>${c<100?'<p class="mt-2 text-xs font-semibold text-forest/55">Add email, GSTIN, crops and volume in Settings to finish.</p>':''}</div></aside>
+<div><div class="hide-scrollbar mb-5 flex gap-2 overflow-x-auto" role="tablist">${[['overview','Overview'],['orders','Orders'],['saved','Saved'],['addresses','Addresses'],['settings','Settings']].map(t=>`<button role="tab" aria-selected="${tab===t[0]}" onclick="location.hash='${t[0]}'" class="shrink-0 rounded-xl px-4 py-2.5 text-sm font-black shadow-sm ${tab===t[0]?'bg-forest text-white':'bg-white'}">${t[1]}</button>`).join('')}</div>${tabHtml()}</div></div>`;
+ if(tab==='settings')wire(true)}
+function route(){const h=location.hash.slice(1);tab=['overview','orders','saved','addresses','settings'].includes(h)?h:'overview';if(buyer)draw()}
+addEventListener('hashchange',route);
+if(buyer&&!buyer.addresses)buyer.addresses=[];
+route();if(!buyer)draw();
+</script>
+<script src="js/buyer.js"></script>
+</body>
+</html>

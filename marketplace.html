@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Fair Harvest — Marketplace</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config={theme:{extend:{
+colors:{forest:'#215D2E',pink:'#FFAEC7',cream:'#FBF2E7',yellow:'#F9DD34',green:'#0DB84B',brightYellow:'#FFE339',lightPink:'#FFF8FA'},
+fontFamily:{sans:['Inter','ui-sans-serif','system-ui','sans-serif']},
+boxShadow:{soft:'0 20px 60px rgba(33,93,46,.10)',card:'0 12px 40px rgba(33,93,46,.08)'},
+animation:{blob:'blob 10s ease-in-out infinite',pulseSoft:'pulseSoft 2.5s ease-in-out infinite'},
+keyframes:{blob:{'0%,100%':{transform:'translate(0,0) scale(1)'},'33%':{transform:'translate(30px,-20px) scale(1.05)'},'66%':{transform:'translate(-20px,20px) scale(.95)'}},
+pulseSoft:{'0%,100%':{transform:'scale(1)',opacity:'1'},'50%':{transform:'scale(1.05)',opacity:'.85'}}}}}};
+</script>
+<style>
+html{scroll-behavior:smooth}body{background:#FFAEC7;color:#215D2E;overflow-x:hidden}*{box-sizing:border-box}
+.glass{background:rgba(255,255,255,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.hide-scrollbar::-webkit-scrollbar{display:none}.hide-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+.crop-card{transition:transform .35s ease,box-shadow .35s ease}.crop-card:hover{transform:translateY(-8px);box-shadow:0 24px 55px rgba(33,93,46,.14)}
+.nav-link{position:relative}.nav-link::after{content:'';position:absolute;left:0;right:0;bottom:-7px;height:2px;background:#0DB84B;transform:scaleX(0);transition:transform .25s ease}.nav-link:hover::after{transform:scaleX(1)}
+.hero-grid{background-image:linear-gradient(rgba(33,93,46,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(33,93,46,.035) 1px,transparent 1px);background-size:42px 42px}
+.gradient-text{background:linear-gradient(90deg,#215D2E,#0DB84B);-webkit-background-clip:text;background-clip:text;color:transparent}
+.search-focus:focus-within{box-shadow:0 0 0 4px rgba(13,184,75,.12)}.heart-active{color:#ef476f;background:#fff0f4!important}
+header.fixed{padding-top:calc(1rem + env(safe-area-inset-top,0px))}
+.fld{width:100%;border-radius:.75rem;border:2px solid rgba(33,93,46,.12);background:#fff;padding:.7rem .9rem;font-size:.875rem;font-weight:600;color:#215D2E;outline:none;transition:border-color .2s,box-shadow .2s}
+.fld:focus{border-color:#0DB84B;box-shadow:0 0 0 4px rgba(13,184,75,.12)}.fld[aria-invalid=true]{border-color:#e5484d;background:#fff6f6}
+.err{margin-top:.25rem;font-size:.75rem;font-weight:700;color:#c2272d}
+</style>
+</head>
+<body>
+<header class="fixed left-0 right-0 top-0 z-50 px-4 pt-4"><nav class="glass mx-auto flex max-w-7xl items-center justify-between rounded-2xl border border-white/60 px-4 py-3 shadow-soft sm:px-6">
+<a href="home.html" class="flex items-center gap-3"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-forest text-xl shadow-sm">🌾</div><div><div class="text-lg font-black tracking-tight text-forest">Fair Harvest</div><div class="text-[10px] font-bold uppercase tracking-[.2em] text-forest/55">Marketplace</div></div></a>
+<div class="hidden items-center gap-8 md:flex"><a href="#results" class="nav-link text-sm font-bold">Browse</a><a href="#cats" class="nav-link text-sm font-bold">Categories</a><a href="buyer-account.html#orders" class="nav-link text-sm font-bold">My orders</a></div>
+<div class="flex items-center gap-2"><button id="cartBtn" aria-label="Open basket" class="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white text-lg shadow-sm transition hover:-translate-y-0.5 hover:bg-cream">🛒<span id="cc" class="absolute -right-1 -top-1 hidden h-5 min-w-5 items-center justify-center rounded-full bg-green px-1 text-[10px] font-black text-white">0</span></button>
+<button id="acct" class="rounded-xl bg-green px-4 py-2.5 text-sm font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-forest">Create account</button></div></nav></header>
+
+<main>
+<section class="hero-grid relative overflow-hidden px-5 pb-12 pt-32 lg:px-8">
+<div class="absolute -left-32 top-24 h-80 w-80 animate-blob rounded-full bg-yellow/50 blur-3xl"></div><div class="absolute -right-32 top-32 h-96 w-96 animate-blob rounded-full bg-green/10 blur-3xl" style="animation-delay:2s"></div>
+<div class="relative mx-auto max-w-7xl">
+<div class="mb-5 inline-flex items-center gap-2 rounded-full border border-forest/10 bg-white/75 px-4 py-2 text-xs font-black shadow-sm"><span class="h-2.5 w-2.5 animate-pulse rounded-full bg-green"></span><span id="stat"></span></div>
+<h1 class="max-w-4xl text-5xl font-black leading-[.98] tracking-[-.045em] sm:text-6xl lg:text-7xl">Every Northeast harvest, <span class="gradient-text">one marketplace.</span></h1>
+<p class="mt-6 max-w-2xl text-base font-medium leading-7 text-forest/70 sm:text-lg">Fruits, vegetables, spices, tea, grains, honey and more, straight from verified farmers. Filter by crop, state, grade, price and harvest status.</p>
+<div class="search-focus mt-8 flex max-w-2xl items-center gap-2 rounded-2xl border border-white/80 bg-white p-2 shadow-soft transition"><span class="pl-3 text-xl">🔎</span><input id="q" type="search" placeholder="Search produce, farmer, village or state..." class="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm font-semibold outline-none placeholder:text-forest/35" aria-label="Search the marketplace"><button id="heroGo" class="rounded-xl bg-green px-5 py-3 text-sm font-black text-white transition hover:bg-forest">Search</button></div>
+<p id="deliv" class="mt-4 text-sm font-bold text-forest/60"></p>
+</div></section>
+
+<section id="cats" class="bg-lightPink px-5 pt-10 lg:px-8"><div class="mx-auto max-w-7xl"><div id="strip" class="hide-scrollbar flex gap-3 overflow-x-auto pb-2"></div></div></section>
+
+<section id="results" class="bg-lightPink px-5 pb-24 pt-6 lg:px-8"><div class="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[290px_1fr]">
+<aside id="filters" class="hidden lg:block"><div class="rounded-3xl bg-white p-5 shadow-card lg:sticky lg:top-28 lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto">
+<div class="flex items-center justify-between"><h2 class="text-lg font-black">Filters</h2><button onclick="resetAll()" class="text-xs font-black text-green underline">Reset</button></div>
+<div class="mt-5"><div class="text-xs font-black uppercase tracking-widest text-green">Categories</div><div id="fCats" class="mt-2"></div></div>
+<div class="mt-5"><div class="text-xs font-black uppercase tracking-widest text-green">Grown in</div><div id="fStates" class="mt-2"></div></div>
+<div class="mt-5"><div class="text-xs font-black uppercase tracking-widest text-green">Grade</div><div class="mt-2 flex gap-2"><button data-g="A+">A+</button><button data-g="A">A</button><button data-g="B">B</button></div></div>
+<div class="mt-5"><div class="text-xs font-black uppercase tracking-widest text-green">Price per kg (₹)</div><div class="mt-2 flex items-center gap-2"><input id="pmin" inputmode="numeric" placeholder="Min" class="fld" aria-label="Minimum price"><span>–</span><input id="pmax" inputmode="numeric" placeholder="Max" class="fld" aria-label="Maximum price"></div></div>
+<div class="mt-5"><label class="text-xs font-black uppercase tracking-widest text-green" for="fMinq">Minimum stock</label><select id="fMinq" class="fld mt-2"><option value="0">Any quantity</option><option value="50">50 kg or more</option><option value="100">100 kg or more</option><option value="250">250 kg or more</option><option value="500">500 kg or more</option></select></div>
+<div class="mt-5"><label class="text-xs font-black uppercase tracking-widest text-green" for="fAvail">Harvest status</label><select id="fAvail" class="fld mt-2"><option value="all">All</option><option value="ready">Ready now</option><option value="soon">Harvesting soon</option></select></div>
+<label class="mt-5 flex cursor-pointer items-center gap-3 rounded-xl bg-cream px-3 py-3 text-sm font-black"><input id="fOrg" type="checkbox" class="h-4 w-4 accent-green"> 🌱 Organic only</label>
+</div></aside>
+
+<div>
+<div class="flex flex-wrap items-center justify-between gap-3">
+<div><h2 class="text-3xl font-black tracking-tight">Find your next harvest.</h2><p id="count" class="mt-1 text-sm font-bold text-forest/55"></p></div>
+<div class="flex flex-wrap items-center gap-2"><button id="fToggle" class="rounded-xl bg-white px-4 py-2.5 text-sm font-black shadow-sm lg:hidden">⚙️ Filters</button>
+<select id="sortSel" class="rounded-xl bg-white px-4 py-2.5 text-sm font-bold shadow-sm outline-none" aria-label="Sort products"><option value="featured">Featured</option><option value="lo">Price: low to high</option><option value="hi">Price: high to low</option><option value="qty">Most available</option><option value="new">Newest listings</option><option value="near">My region first</option></select>
+<div class="flex rounded-xl bg-white p-1 shadow-sm"><button id="vGrid" aria-label="Grid view">▦ Grid</button><button id="vList" aria-label="List view">☰ List</button></div></div></div>
+<div id="active" class="mt-4 flex flex-wrap items-center gap-2"></div>
+<div id="grid"></div>
+<div class="mt-10 text-center"><button id="more" class="rounded-xl border-2 border-forest bg-white px-6 py-3 text-sm font-black transition hover:bg-forest hover:text-white">Show more produce</button></div>
+</div></div></section>
+</main>
+
+<footer class="bg-forest px-5 py-10 text-white lg:px-8"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4"><div class="flex items-center gap-3"><div class="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow text-xl text-forest">🌾</div><div><div class="font-black">Fair Harvest</div><div class="text-xs font-semibold text-white/50">Connecting Northeast farmers to buyers</div></div></div><div class="flex gap-6 text-sm font-bold text-white/70"><a href="buyer-account.html" class="hover:text-yellow">Buyer account</a><a href="buyer-account.html#orders" class="hover:text-yellow">My orders</a></div><div class="w-full border-t border-white/10 pt-5 text-xs font-semibold text-white/35">© 2026 Fair Harvest · Built for Northeast India</div></div></footer>
+
+<div id="cartOv" class="fixed inset-0 z-[100] hidden bg-forest/30 backdrop-blur-sm"><div id="cartDr" class="absolute bottom-0 right-0 top-0 w-full max-w-md translate-x-full overflow-y-auto bg-cream p-6 shadow-2xl transition-transform duration-500 sm:rounded-l-[2rem]">
+<div class="flex items-center justify-between"><div><div class="text-xs font-black uppercase tracking-widest text-green">Your basket</div><h3 class="mt-1 text-2xl font-black">Selected produce</h3></div><button id="cartX" aria-label="Close basket" class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg">✕</button></div>
+<div id="ci" class="mt-6 space-y-3"></div>
+<div class="mt-6 rounded-2xl bg-white p-5 text-sm font-semibold text-forest/70"><div id="tot" class="space-y-1.5"></div><button id="checkout" class="mt-4 w-full rounded-xl bg-green py-3.5 text-sm font-black text-white transition hover:bg-forest">Place order →</button></div>
+</div></div>
+<div id="modal" class="fixed inset-0 z-[110] flex hidden items-center justify-center bg-forest/40 p-5 backdrop-blur-sm"><div id="modalBody" role="dialog" aria-modal="true" class="max-h-full w-full max-w-md overflow-y-auto rounded-[2rem] bg-white p-8 text-center shadow-2xl"></div></div>
+<div id="toast" role="status" class="fixed bottom-6 left-1/2 z-[120] hidden max-w-[92vw] -translate-x-1/2 rounded-xl bg-forest px-5 py-3 text-sm font-bold text-white shadow-xl"></div>
+
+<script>
+const CATS=[['fruit','Fruits','🍊'],['veg','Vegetables','🥬'],['spice','Spices','🌶️'],['tea','Tea & Coffee','🍵'],['grain','Grains & Millets','🌾'],['pulse','Pulses & Beans','🫘'],['honey','Honey & Dairy','🍯'],['mushroom','Mushrooms','🍄'],['nut','Nuts & Seeds','🥜'],['herb','Herbs & Forest','🎋']];
+const ST={AR:'Arunachal Pradesh',AS:'Assam',ML:'Meghalaya',NL:'Nagaland',MN:'Manipur',MZ:'Mizoram',TR:'Tripura',SK:'Sikkim'};
+const R=[
+['Arunachal Kiwi','fruit','🥝',140,20,120,'AR','Ziro','Tashi Dorjee','A+',1,'r',3],['Khasi Mandarin','fruit','🍊',62,50,480,'ML','Nongstoin','Daiaphira Lyngdoh','A',1,'r',8],['Sikkim Mandarin','fruit','🍊',70,40,260,'SK','Gyalshing','Pema Bhutia','A+',1,'r',12],['Queen Pineapple','fruit','🍍',42,50,610,'TR','Kumarghat','Subrata Debbarma','A',0,'r',5],['Joha Banana','fruit','🍌',38,50,340,'AS','Jorhat','Dipen Gogoi','A',0,'r',15],['Assam Lemon','fruit','🍋',85,25,190,'AS','Karbi Anglong','Rina Terang','A',1,'r',20],['Meghalaya Strawberry','fruit','🍓',230,10,55,'ML','Shillong','Ibankyntiew Khongwir','A+',1,'s',2],['Tripura Litchi','fruit','🍒',150,20,140,'TR','Mohanpur','Rajib Reang','A',0,'s',1],['Hill Pear','fruit','🍐',90,25,170,'NL','Kohima','Vizo Chase','B',0,'r',30],['Organic Orange','fruit','🍊',55,50,320,'AR','Daporijo','Tage Riba','A',1,'r',6],
+['Shillong Potato','veg','🥔',26,100,900,'ML','Upper Shillong','Kitbok Nongrum','A',0,'r',4],['Hill Cabbage','veg','🥬',22,50,420,'ML','Mawphlang','Phibansuk Kharbuli','A',0,'r',9],['Sikkim Carrot','veg','🥕',38,40,300,'SK','Pelling','Karma Lepcha','A',1,'r',7],['Broccoli','veg','🥦',64,20,130,'SK','Namchi','Dawa Sherpa','A+',1,'r',3],['Tomato','veg','🍅',30,50,520,'AS','Dibrugarh','Mrinal Saikia','B',0,'r',10],['Sweet Corn','veg','🌽',26,50,380,'MZ','Champhai','Lalrem Sanga','A',0,'r',14],['Brinjal','veg','🍆',32,25,240,'TR','Udaipur','Anil Debnath','B',0,'r',17],['Squash (Iskus)','veg','🥒',28,25,210,'SK','Ravangla','Tshering Tamang','A',1,'r',11],['Green Peas','veg','🫛',72,20,150,'NL','Mokokchung','Imti Ao','A',0,'s',2],['Garlic','veg','🧄',120,20,160,'AS','Barpeta','Nurul Haque','A',0,'r',22],
+['Fresh Ginger','spice','🫚',65,50,250,'AR','Ziro','Nabam Taba','A',1,'r',5],['Lakadong Turmeric','spice','🟡',140,20,120,'ML','Jaintia Hills','Lakadong Pde','A+',1,'r',6],['Hill Turmeric','spice','🟡',90,25,180,'AR','Pasighat','Morang Ete','A',1,'r',13],['Large Cardamom','spice','🌿',1350,5,85,'AR','Bomdila','Pema Norbu','A+',1,'r',4],['Raja Mircha (King Chilli)','spice','🌶️',420,5,70,'NL','Dimapur','Neikhrielie Rio','A+',1,'r',1],['Black Pepper','spice','⚫',520,5,60,'ML','Garo Hills','Sangma Marak','A',1,'r',19],['Tej Patta (Bay Leaf)','spice','🍃',110,10,90,'AR','Tawang','Dorjee Wangchuk','A',1,'r',25],
+['Assam CTC Tea','tea','🍵',320,25,400,'AS','Jorhat','Hemanta Borah','A',0,'r',3],['Orthodox Green Tea','tea','🍵',540,10,90,'AR','Khonsa','Wangsu Tangha','A+',1,'r',5],['Arabica Coffee','tea','☕',780,10,65,'NL','Phek','Kevi Sema','A+',1,'s',2],
+['Joha Rice','grain','🍚',95,50,700,'AS','Nalbari','Pranab Kalita','A+',0,'r',9],['Black Rice (Chakhao)','grain','🍚',220,20,120,'MN','Thoubal','Ibomcha Singh','A+',1,'r',7],['Foxtail Millet','grain','🌾',65,50,260,'NL','Zunheboto','Kughato Sumi','A',1,'r',16],['Buckwheat','grain','🌾',80,25,140,'SK','Yuksom','Pemba Bhutia','A',1,'r',21],
+['Rajma (Kidney Beans)','pulse','🫘',130,25,210,'SK','Soreng','Tenzing Rai','A',0,'r',8],['Black Soybean','pulse','🫘',90,25,180,'NL','Kiphire','Yimchunger Y.','A',1,'r',12],['Rice Bean','pulse','🫘',85,25,150,'MZ','Lunglei','Lalthanga Ralte','B',1,'r',27],
+['Wild Forest Honey','honey','🍯',480,10,110,'AR','Dirang','Sonam Dorjee','A+',1,'r',4],['Yak Churpi (Dried Cheese)','honey','🧀',650,5,45,'SK','Lachen','Dorji Lachenpa','A',1,'s',1],
+['Oyster Mushroom','mushroom','🍄',180,10,95,'ML','Nongpoh','Bah Rynjah','A',1,'r',2],['Shiitake Mushroom','mushroom','🍄',520,5,40,'MZ','Aizawl','Zothan Hlua','A+',1,'s',3],
+['Raw Cashew','nut','🥜',780,10,120,'TR','Dhalai','Bikash Tripura','A',0,'r',14],['Groundnut','nut','🥜',120,25,200,'ML','Ri-Bhoi','Pynshai War','A',0,'r',18],['Areca Nut','nut','🌰',380,20,260,'AS','Goalpara','Rafiqul Islam','B',0,'r',26],
+['Lemongrass','herb','🌿',70,10,100,'AS','Sivasagar','Jyoti Neog','A',1,'r',6],['Holy Basil (Tulsi)','herb','🌿',90,5,50,'MN','Imphal','Sanatomba L.','A',1,'r',9],['Bamboo Shoot','herb','🎋',80,25,170,'MN','Ukhrul','Ngaranmi Shimray','A',1,'r',5],['Aloe Vera Leaf','herb','🌿',40,25,230,'TR','Agartala','Prosenjit Das','B',0,'r',23]
+].map((r,i)=>({id:i+1,name:r[0],cat:r[1],icon:r[2],price:r[3],moq:r[4],qty:r[5],st:r[6],village:r[7],farmer:r[8],grade:r[9],org:!!r[10],soon:r[11]==='s',age:r[12]}));
+const RATE={shared:12,standard:17,express:24},DNAME={shared:'Shared truck',standard:'Standard',express:'Express'};
+const $=id=>document.getElementById(id),rs=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const L=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},W=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}};
+let buyer=L('fh.buyer',null),cart=L('fh.cart',[]),wish=L('fh.wish',[]);
+const F={q:'',cats:[],states:[],grades:[],pmin:'',pmax:'',minq:0,avail:'all',org:false,sort:'featured',view:'grid',shown:12};
+
+function toast(t){const e=$('toast');e.textContent=t;e.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hidden'),3200)}
+function paintBuyer(){const a=$('acct');if(buyer){a.textContent='👤 '+buyer.name.split(' ')[0];a.title='Open your buyer account';$('deliv').textContent=`Delivering to ${buyer.city}, ${buyer.state}`}else{a.textContent='Create account';$('deliv').textContent='Create a buyer account to place orders'}}
+
+/* ---------- filter panel ---------- */
+function cnt(fn){return R.filter(fn).length}
+function checks(name,items,sel){return items.map(([v,l,ic,n])=>`<label class="flex cursor-pointer items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-sm font-semibold hover:bg-cream"><span class="flex items-center gap-2"><input type="checkbox" class="h-4 w-4 accent-green" data-k="${name}" value="${v}" ${sel.includes(v)?'checked':''}>${ic||''} ${l}</span><span class="text-xs text-forest/40">${n}</span></label>`).join('')}
+function buildFilters(){
+ $('fCats').innerHTML=checks('cats',CATS.map(c=>[c[0],c[1],c[2],cnt(p=>p.cat===c[0])]),F.cats);
+ $('fStates').innerHTML=checks('states',Object.entries(ST).map(([k,v])=>[k,v,'',cnt(p=>p.st===k)]),F.states);
+ $('strip').innerHTML=`<button data-cat="" class="chip shrink-0 rounded-2xl px-4 py-3 text-sm font-black shadow-sm">✨ All <span class="text-xs opacity-60">${R.length}</span></button>`+CATS.map(c=>`<button data-cat="${c[0]}" class="chip shrink-0 rounded-2xl px-4 py-3 text-sm font-black shadow-sm">${c[2]} ${c[1]} <span class="text-xs opacity-60">${cnt(p=>p.cat===c[0])}</span></button>`).join('')}
+function syncControls(){document.querySelectorAll('#filters input[type=checkbox][data-k]').forEach(i=>i.checked=F[i.dataset.k].includes(i.value));
+ document.querySelectorAll('[data-g]').forEach(b=>{const on=F.grades.includes(b.dataset.g);b.className=`rounded-lg px-3 py-1.5 text-xs font-black ${on?'bg-forest text-white':'bg-cream text-forest'}`});
+ $('fOrg').checked=F.org;$('fMinq').value=F.minq;$('fAvail').value=F.avail;$('pmin').value=F.pmin;$('pmax').value=F.pmax;$('sortSel').value=F.sort;$('q').value=F.q;
+ document.querySelectorAll('.chip').forEach(b=>{const on=b.dataset.cat===''?!F.cats.length:(F.cats.length===1&&F.cats[0]===b.dataset.cat);b.className=`chip shrink-0 rounded-2xl px-4 py-3 text-sm font-black shadow-sm transition ${on?'bg-forest text-white':'bg-white text-forest hover:bg-cream'}`});
+ $('vGrid').className=`rounded-lg px-3 py-2 text-sm font-black ${F.view==='grid'?'bg-forest text-white':'text-forest'}`;$('vList').className=`rounded-lg px-3 py-2 text-sm font-black ${F.view==='list'?'bg-forest text-white':'text-forest'}`}
+function list(){let d=R.filter(p=>{const q=F.q.trim().toLowerCase();
+ return(!q||(p.name+p.farmer+p.village+ST[p.st]+p.cat).toLowerCase().includes(q))&&(!F.cats.length||F.cats.includes(p.cat))&&(!F.states.length||F.states.includes(p.st))&&(!F.grades.length||F.grades.includes(p.grade))&&(F.pmin===''||p.price>=+F.pmin)&&(F.pmax===''||p.price<=+F.pmax)&&p.qty>=F.minq&&(F.avail==='all'||(F.avail==='ready'?!p.soon:p.soon))&&(!F.org||p.org)});
+ const s=F.sort,mine=buyer?Object.keys(ST).find(k=>ST[k]===buyer.state):null;
+ if(s==='lo')d.sort((a,b)=>a.price-b.price);else if(s==='hi')d.sort((a,b)=>b.price-a.price);else if(s==='qty')d.sort((a,b)=>b.qty-a.qty);else if(s==='new')d.sort((a,b)=>a.age-b.age);else if(s==='near')d.sort((a,b)=>(b.st===mine)-(a.st===mine)||a.price-b.price);
+ return d}
+function card(p){const inC=cart.some(c=>c.id===p.id),w=wish.some(x=>x.id===p.id),ls=F.view==='list';
+ const badge=p.soon?'<span class="rounded-full bg-yellow px-3 py-1 text-[10px] font-black text-forest shadow-sm">Harvesting soon</span>':(p.org?'<span class="rounded-full bg-white px-3 py-1 text-[10px] font-black text-green shadow-sm">🌱 Organic</span>':'<span class="rounded-full bg-white px-3 py-1 text-[10px] font-black text-green shadow-sm">Fresh</span>');
+ const btn=`<button onclick="toggleCart(${p.id})" class="${ls?'w-44 shrink-0':'mt-4 w-full'} rounded-xl py-3 text-sm font-black text-white transition ${inC?'bg-forest':'bg-green hover:bg-forest'}">${inC?'✓ In basket':'🛒 Add to basket'}</button>`;
+ const heart=`<button onclick="toggleWish(${p.id})" aria-label="Save" class="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-sm transition hover:scale-110 ${w?'heart-active':''}">${w?'♥':'♡'}</button>`;
+ const bg=['bg-green/10','bg-yellow/20'][p.id%2];
+ const info=`<div class="flex items-start justify-between gap-3"><div><h3 class="text-lg font-black">${p.name}</h3><p class="mt-1 text-xs font-semibold text-forest/45">📍 ${p.village}, ${ST[p.st]}</p></div><span class="shrink-0 rounded-lg bg-green/10 px-2 py-1 text-[10px] font-black text-green">${p.grade}</span></div>`;
+ const price=`<div class="text-2xl font-black text-green">₹${p.price}</div><div class="text-[11px] font-semibold text-forest/40">per kg · ${p.qty} kg available · min ${p.moq} kg</div>`;
+ if(ls)return`<article class="crop-card flex flex-wrap items-center gap-4 rounded-2xl border border-forest/5 bg-white p-3 shadow-card sm:flex-nowrap"><div class="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl text-5xl ${bg}">${p.icon}</div><div class="min-w-0 flex-1">${info}<div class="mt-2 flex flex-wrap items-center gap-3"><div>${price}</div>${badge}<span class="text-xs font-bold text-forest/45">Farmer: ${p.farmer}</span></div></div>${btn}</article>`;
+ return`<article class="crop-card rounded-[1.7rem] border border-forest/5 bg-white p-3 shadow-card"><div class="relative flex h-48 items-center justify-center overflow-hidden rounded-[1.35rem] ${bg}"><div class="text-[92px] drop-shadow-lg">${p.icon}</div><div class="absolute left-3 top-3">${badge}</div>${heart}</div><div class="p-3">${info}<div class="mt-4 flex items-end justify-between"><div>${price}</div><div class="text-right"><div class="text-xs font-bold text-forest/40">Farmer</div><div class="max-w-[100px] truncate text-xs font-black">${p.farmer}</div></div></div>${btn}</div></article>`}
+function render(){const d=list();syncControls();$('count').textContent=`${d.length} of ${R.length} products`;
+ const ch=[];F.cats.forEach(c=>ch.push(['cats',c,CATS.find(x=>x[0]===c)[1]]));F.states.forEach(s=>ch.push(['states',s,ST[s]]));F.grades.forEach(g=>ch.push(['grades',g,'Grade '+g]));
+ if(F.pmin!==''||F.pmax!=='')ch.push(['price','','₹'+(F.pmin||0)+' – '+(F.pmax||'any')]);if(F.minq)ch.push(['minq','','≥ '+F.minq+' kg']);if(F.avail!=='all')ch.push(['avail','',F.avail==='ready'?'Ready now':'Harvesting soon']);if(F.org)ch.push(['org','','Organic']);if(F.q.trim())ch.push(['q','','“'+F.q.trim()+'”']);
+ $('active').innerHTML=ch.map(c=>`<button onclick="rm('${c[0]}','${c[1]}')" class="rounded-full bg-white px-3 py-1.5 text-xs font-black shadow-sm hover:bg-cream">${c[2]} ✕</button>`).join('')+(ch.length?'<button onclick="resetAll()" class="px-2 text-xs font-black text-green underline">Clear all</button>':'');
+ $('grid').className=F.view==='grid'?'mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3':'mt-6 grid gap-4';
+ $('grid').innerHTML=d.length?d.slice(0,F.shown).map(card).join(''):`<div class="col-span-full rounded-3xl bg-white p-12 text-center"><div class="text-5xl">🌱</div><h3 class="mt-4 text-xl font-black">No produce matches</h3><p class="mt-2 text-sm font-medium text-forest/50">Loosen a filter or clear them all.</p><button onclick="resetAll()" class="mt-5 rounded-xl bg-green px-5 py-3 text-sm font-black text-white">Clear all filters</button></div>`;
+ $('more').style.display=d.length>F.shown?'':'none'}
+function rm(k,v){if(k==='price'){F.pmin='';F.pmax=''}else if(k==='minq')F.minq=0;else if(k==='avail')F.avail='all';else if(k==='org')F.org=false;else if(k==='q')F.q='';else F[k]=F[k].filter(x=>x!==v);F.shown=12;render()}
+function resetAll(){Object.assign(F,{q:'',cats:[],states:[],grades:[],pmin:'',pmax:'',minq:0,avail:'all',org:false,shown:12});render()}
+
+document.addEventListener('change',e=>{const t=e.target;if(t.dataset.k){const a=F[t.dataset.k];t.checked?a.push(t.value):a.splice(a.indexOf(t.value),1);F.shown=12;render()}
+ else if(t.id==='fOrg'){F.org=t.checked;F.shown=12;render()}else if(t.id==='fMinq'){F.minq=+t.value;render()}else if(t.id==='fAvail'){F.avail=t.value;render()}else if(t.id==='sortSel'){F.sort=t.value;render()}});
+['pmin','pmax'].forEach(id=>$(id).addEventListener('input',e=>{F[id]=e.target.value.replace(/\D/g,'');e.target.value=F[id];F.shown=12;render()}));
+$('q').addEventListener('input',e=>{F.q=e.target.value;F.shown=12;render()});
+$('strip').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;F.cats=b.dataset.cat?[b.dataset.cat]:[];F.shown=12;render()});
+document.querySelectorAll('[data-g]').forEach(b=>b.addEventListener('click',()=>{const g=b.dataset.g;F.grades=F.grades.includes(g)?F.grades.filter(x=>x!==g):F.grades.concat(g);render()}));
+$('more').addEventListener('click',()=>{F.shown+=12;render()});
+$('vGrid').onclick=()=>{F.view='grid';render()};$('vList').onclick=()=>{F.view='list';render()};
+$('fToggle').onclick=()=>$('filters').classList.toggle('hidden');
+$('heroGo').onclick=()=>$('results').scrollIntoView({behavior:'smooth'});
+$('q').addEventListener('keydown',e=>{if(e.key==='Enter')$('results').scrollIntoView({behavior:'smooth'})});
+
+/* ---------- wishlist ---------- */
+function toggleWish(id){const p=R.find(x=>x.id===id);wish=wish.some(x=>x.id===id)?wish.filter(x=>x.id!==id):wish.concat({id,name:p.name,icon:p.icon,price:p.price});W('fh.wish',wish);render()}
+
+/* ---------- cart ---------- */
+function toggleCart(id){const p=R.find(x=>x.id===id);cart=cart.some(c=>c.id===id)?cart.filter(c=>c.id!==id):cart.concat({id,qty:p.moq});W('fh.cart',cart);paintCart();render()}
+function qty(id,d){const c=cart.find(x=>x.id===id),p=R.find(x=>x.id===id);c.qty=Math.max(p.moq,Math.min(p.qty,c.qty+d*5));W('fh.cart',cart);paintCart()}
+function totals(){let sub=0,kg=0;cart.forEach(c=>{const p=R.find(x=>x.id===c.id);sub+=p.price*c.qty;kg+=c.qty});const rate=RATE[(buyer&&buyer.delivery)||'shared'];return{sub,kg,fee:sub*.02,fr:kg*rate,rate,total:sub*1.02+kg*rate}}
+function paintCart(){const n=cart.length,b=$('cc');b.textContent=n;b.classList.toggle('hidden',!n);const t=totals();
+ $('ci').innerHTML=n?cart.map(c=>{const p=R.find(x=>x.id===c.id);return`<div class="flex items-center gap-3 rounded-2xl bg-white p-3"><div class="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-cream text-3xl">${p.icon}</div><div class="min-w-0 flex-1"><div class="truncate text-sm font-black">${p.name}</div><div class="mt-1 flex items-center gap-2 text-xs font-bold"><button onclick="qty(${p.id},-1)" aria-label="Less" class="h-7 w-7 rounded-lg bg-cream font-black">−</button>${c.qty} kg<button onclick="qty(${p.id},1)" aria-label="More" class="h-7 w-7 rounded-lg bg-cream font-black">+</button></div></div><div class="text-right"><div class="font-black text-green">${rs(p.price*c.qty)}</div><button onclick="toggleCart(${p.id})" class="mt-1 text-[10px] font-black text-red-500">Remove</button></div></div>`}).join(''):`<div class="rounded-2xl bg-white p-8 text-center"><div class="text-5xl">🛒</div><p class="mt-3 font-black">Your basket is empty</p><p class="mt-1 text-xs font-medium text-forest/45">Add produce from the marketplace.</p></div>`;
+ $('tot').innerHTML=n?`<div class="flex justify-between"><span>Produce (${t.kg} kg)</span><span>${rs(t.sub)}</span></div><div class="flex justify-between"><span>Platform fee (2%)</span><span>${rs(t.fee)}</span></div><div class="flex justify-between"><span>${DNAME[(buyer&&buyer.delivery)||'shared']} freight (${rs(t.rate)}/kg)</span><span>${rs(t.fr)}</span></div><div class="mt-2 flex justify-between border-t border-forest/10 pt-3 text-base font-black"><span>Total</span><span>${rs(t.total)}</span></div>`:'';
+ $('checkout').disabled=!n;$('checkout').classList.toggle('opacity-50',!n)}
+const open=(id)=>{$(id).classList.remove('hidden')};
+function cartOpen(){open('cartOv');requestAnimationFrame(()=>$('cartDr').classList.remove('translate-x-full'))}
+function cartClose(){$('cartDr').classList.add('translate-x-full');setTimeout(()=>$('cartOv').classList.add('hidden'),400)}
+$('cartBtn').onclick=cartOpen;$('cartX').onclick=cartClose;$('cartOv').addEventListener('click',e=>{if(e.target.id==='cartOv')cartClose()});
+function modal(h){$('modalBody').innerHTML=h;open('modal')}function modalClose(){$('modal').classList.add('hidden')}
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')modalClose()});
+addEventListener('keydown',e=>{if(e.key==='Escape'){modalClose();cartClose()}});
+function checkout(){if(!cart.length)return;
+ if(!buyer){cartClose();return modal(`<div class="text-5xl">👤</div><h3 class="mt-3 text-2xl font-black">Create your buyer account</h3><p class="mt-2 text-sm font-medium text-forest/60">Orders need a verified 10-digit mobile number, your name and a delivery location so farmers and trucks know where to send produce.</p><a href="buyer-account.html?from=market" class="mt-6 block rounded-xl bg-green py-3.5 text-center text-sm font-black text-white hover:bg-forest">Create account</a><button onclick="modalClose()" class="mt-2 w-full py-2 text-sm font-bold text-forest/60">Keep browsing</button>`)}
+ const t=totals(),o={id:'FH-'+new Date().toISOString().slice(2,10).replace(/-/g,'')+'-'+Math.random().toString(36).slice(2,6).toUpperCase(),buyerId:buyer.id,date:Date.now(),items:cart.map(c=>{const p=R.find(x=>x.id===c.id);return{id:p.id,name:p.name,icon:p.icon,qty:c.qty,price:p.price,farmer:p.farmer}}),sub:t.sub,fee:t.fee,freight:t.fr,total:t.total,delivery:buyer.delivery||'shared',to:`${buyer.address}, ${buyer.city}, ${buyer.state} ${buyer.pin}`,status:'Placed'};
+ const all=L('fh.orders',[]);all.unshift(o);W('fh.orders',all);cart=[];W('fh.cart',cart);paintCart();render();cartClose();
+ modal(`<div class="text-5xl">✅</div><h3 class="mt-3 text-2xl font-black">Order placed</h3><p class="mt-2 text-sm font-medium text-forest/60">Order <b>${o.id}</b> for ${rs(o.total)} is with the farmers. We will call ${'+91 '+buyer.mobile.slice(0,2)+'XXXXXX'+buyer.mobile.slice(-2)} to confirm delivery.</p><p class="mt-3 rounded-xl bg-cream p-3 text-xs font-semibold">📍 ${o.to}</p><a href="buyer-account.html#orders" class="mt-5 block rounded-xl bg-green py-3.5 text-center text-sm font-black text-white hover:bg-forest">View my orders</a><button onclick="modalClose()" class="mt-2 w-full py-2 text-sm font-bold text-forest/60">Continue shopping</button>`)}
+$('checkout').onclick=checkout;
+addEventListener('storage',()=>{buyer=L('fh.buyer',null);paintBuyer();paintCart()});
+$('acct').onclick=()=>{location.href='buyer-account.html'+(buyer?'':'?from=market')};
+$('stat').textContent=`${R.length} products · ${CATS.length} categories · ${Object.keys(ST).length} states`;
+buildFilters();paintBuyer();paintCart();render();
+</script>
+<script src="js/buyer.js"></script>
+</body>
+</html>

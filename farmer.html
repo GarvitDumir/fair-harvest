@@ -76,10 +76,62 @@
   <button data-view="sms" class="tab"><span class="text-xl md:text-base">💬</span>SMS Bridge</button>
   <button data-view="alerts" class="tab"><span class="text-xl md:text-base">🔔</span>Alerts</button>
   <button data-view="settings" class="tab"><span class="text-xl md:text-base">⚙️</span>Settings</button>
+  
+<div class="flex items-center gap-3">
+  <span class="text-sm font-semibold" id="farmerLabel">
+    🌾 Farmer
+  </span>
+
+  <button
+    id="roleSwitch"
+    type="button"
+    role="switch"
+    aria-label="Switch between Farmer and Buyer"
+    aria-checked="false"
+    class="relative h-7 w-14 rounded-full bg-green-700 transition-colors"
+  >
+    <span
+      id="switchKnob"
+      class="absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow transition-transform"
+    ></span>
+  </button>
+
+  <span class="text-sm text-gray-400" id="buyerLabel">
+    🛒 Buyer
+  </span>
+</div>
+
 </nav>
 
 <main class="md:pl-40">
 <div class="mx-auto max-w-6xl p-4 md:p-6">
+
+<script>
+  const roleSwitch = document.getElementById('roleSwitch');
+  const switchKnob = document.getElementById('switchKnob');
+  const farmerLabel = document.getElementById('farmerLabel');
+  const buyerLabel = document.getElementById('buyerLabel');
+
+  const page = window.location.pathname.split('/').pop();
+  const isBuyer = page === 'home.html';
+
+  function setSwitchState(buyer) {
+    roleSwitch.setAttribute('aria-checked', String(buyer));
+    switchKnob.classList.toggle('translate-x-7', buyer);
+    roleSwitch.classList.toggle('bg-blue-600', buyer);
+    roleSwitch.classList.toggle('bg-green-700', !buyer);
+    farmerLabel.classList.toggle('text-green-700', !buyer);
+    farmerLabel.classList.toggle('text-gray-400', buyer);
+    buyerLabel.classList.toggle('text-blue-600', buyer);
+    buyerLabel.classList.toggle('text-gray-400', !buyer);
+  }
+
+  setSwitchState(isBuyer);
+
+  roleSwitch.addEventListener('click', () => {
+    window.location.href = isBuyer ? 'farmer.html' : 'home.html';
+  });
+</script>
 
 
 <section id="view-dashboard" class="view active">
@@ -359,6 +411,6 @@ app.post('/sms-webhook', (req, res) => {
   <script src="js/listings.js"></script> 
   <script src="js/villagePools.js"></script>
   <script src="js/ai-features.js"></script>
-  <script src="js/farmer.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
