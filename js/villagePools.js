@@ -1,64 +1,39 @@
+function calculatePoolProgress(currentKg, targetKg = 500) {
+  const percentage = Math.min(100, Math.round((currentKg / targetKg) * 100));
+  const isReady = currentKg >= targetKg;
 
-const express = require("express");
-const supabase = require("../lib/supabase");
+  return {
+    percentage,
+    isReady,
+    statusText: isReady ? '🟢 Ready for Sale' : '🟡 Aggregating',
+    remainingKg: Math.max(0, targetKg - currentKg)
+  };
+}
 
-const router = express.Router();
+function calculateFreightSavings(totalFarmersInPool = 4) {
+  const individualTruckCost = 8000;
+  const pooledTruckCost = 3200;
+  const totalSavings = individualTruckCost - pooledTruckCost;
+  const savingsPercentage = Math.round((totalSavings / individualTruckCost) * 100);
+  const costPerFarmer = Math.round(pooledTruckCost / Math.max(1, totalFarmersInPool));
 
-// GET /api/village-pools
-router.get("/", async (req, res) => {
-  try {
-    const { status, village, crop_id } = req.query;
+  return {
+    individualTruckCost,
+    pooledTruckCost,
+    savingsPercentage,
+    costPerFarmer
+  };
+}
 
-    const allowedStatuses = [
-      "open",
-      "ready_for_sale",
-      "purchased"
-    ];
+function calculateEscrowBreakdown(totalProduceValue) {
+  const platformFee = Math.round(totalProduceValue * 0.02);
+  const immediateFarmerPayout = Math.round(totalProduceValue * 0.50);
+  const finalDeliveryPayout = Math.round(totalProduceValue * 0.50);
 
-    if (status && !allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid pool status."
-      });
-    }
-
-    let query = supabase
-      .from("active_village_pools")
-      .select("*")
-      .order("village", { ascending: true });
-
-    // By default, return pools available for pooling or sale.
-    if (status) {
-      query = query.eq("status", status);
-    } else {
-      query = query.in("status", ["open", "ready_for_sale"]);
-    }
-
-    if (village) {
-      query = query.ilike("village", village);
-    }
-
-    if (crop_id) {
-      query = query.eq("crop_id", crop_id);
-    }
-
-    const { data, error } = await query;
-
-    if (error) throw error;
-
-    return res.status(200).json({
-      success: true,
-      count: data.length,
-      pools: data
-    });
-  } catch (error) {
-    console.error("Fetch village pools failed:", error.message);
-
-    return res.status(500).json({
-      success: false,
-      message: "Unable to fetch village pools."
-    });
-  }
-});
-
-module.exports = router;
+  return {
+    platformFee,
+    immediateFarmerPayout,
+    finalDeliveryPayout,
+    totalBuyerPayable: totalProduceValue + platformFee
+  };
+}

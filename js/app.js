@@ -362,7 +362,61 @@ async function analyseGemini(file, cropChoice) {
         ]
     };
 }
+async function submitFarmerListing() {
+  const submitBtn = document.getElementById('submit-btn');
+  const cropObj = SEED_DATA.crops.find(c => c.id === selectedCropId);
 
+  if (!cropObj) {
+    alert('❌ Please select a valid crop.');
+    return;
+  }
+
+  if (!quantity || Number(quantity) <= 0) {
+    alert('❌ Please enter a valid quantity.');
+    return;
+  }
+
+  const originalText = submitBtn
+    ? submitBtn.innerText
+    : '🚀 Add Harvest to Village Pool';
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Connecting to Database...';
+  }
+
+  try {
+    const response = await createListing({
+      cropName: cropObj.name,
+      quantityKg: Number(quantity),
+      village: 'Ziro Valley',
+      qualityGrade: 'Grade A Export',
+      ratePerKg: Number(cropObj.price)
+    });
+
+    if (!response.success) {
+      throw new Error(response.error || 'Failed to create listing.');
+    }
+
+    if (response.isMock) {
+      alert(
+        `⚠️ Demo mode: ${quantity} kg of ${cropObj.name} was simulated locally. It was not saved to Supabase.`
+      );
+    } else {
+      alert(
+        `🎉 Success! ${quantity} kg of ${cropObj.name} was added to the Ziro Village Pool.`
+      );
+    }
+  } catch (error) {
+    console.error('Listing submission failed:', error);
+    alert('❌ Could not submit listing: ' + error.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerText = originalText;
+    }
+  }
+}
 
 
 async function hashFile(file) {
@@ -432,16 +486,69 @@ function addListing(l) {
   log(`${item.source === 'sms' ? 'SMS ' : ''}Listed ${item.qty} kg ${CROPS[item.crop].short} (Grade ${item.grade})`);
   save(); renderAll(); return item;
 }
-$('#listingForm').addEventListener('submit', e => {
+
+$('#listingForm').addEventListener('submit', async e => {
   e.preventDefault();
-  const crop = $('#lCrop').value, grade = $('#lGrade').value;
-  const item = addListing({
-    crop, grade, qty: +$('#lQty').value, price: +$('#lPrice').value || suggestPrice(crop, grade),
-    village: $('#lVillage').value.trim(), harvest: $('#lHarvest').value, notes: $('#lNotes').value.trim(), cert: $('#lCert').value
-  });
-  toast(item.pending ? '📵 Saved offline – will sync when network returns' : '✅ Listing published to buyers');
-  e.target.reset(); $('#lCert').value = ''; $('#lVillage').value = state.settings.village; $('#lHarvest').value = today(); $('#priceHint').classList.add('hidden');
+
+  const crop = $('#lCrop').value;
+  const grade = $('#lGrade').value;
+  const qty = Number($('#lQty').value);
+  const village = $('#lVillage').value.trim();
+
+  const item = {
+    crop,
+    grade,
+    qty,
+    price: Number($('#lPrice').value) || suggestPrice(crop, grade),
+    village,
+    harvest: $('#lHarvest').value,
+    notes: $('#lNotes').value.trim(),
+    cert: $('#lCert').value
+  };
+
+  const submitBtn = e.submitter;
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving...';
+  }
+
+  try {
+    if (!supabaseClient) {
+      throw new Error('Supabase client is not initialized.');
+    }
+
+    const { error } = await supabaseClient
+      .from('listings')
+      .insert({
+        crop_name: CROPS[item.crop].name,
+        quantity_kg: item.qty,
+        village: item.village,
+        status: 'pending',
+        quality_grade: `Grade ${item.grade}`,
+        price: item.price,
+        notes: item.notes
+      });
+
+    if (error) throw error;
+
+    addListing({ ...item, pending: false });
+    toast('Listing saved to Supabase!');
+    e.target.reset();
+    $('#lCert').value = '';
+    $('#lVillage').value = state.settings.village;
+    $('#lHarvest').value = today();
+    $('#priceHint').classList.add('hidden');
+  } catch (err) {
+    console.error('Supabase error:', err.message);
+    toast('Could not save to Supabase: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '🚀 Add Harvest to Village Pool';
+    }
+  }
 });
+
 $('#lClear').addEventListener('click', () => { $('#listingForm').reset(); $('#lCert').value = ''; $('#priceHint').classList.add('hidden'); });
 $('#filterStatus').addEventListener('change', renderListings);
 

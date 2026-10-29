@@ -1,0 +1,36 @@
+[33mcommit a4cbc0fcb1c97307123186380c5ff9dce87abac0[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: GarvitDumir <garvit.dumir1103@gmail.com>
+Date:   Thu Oct 29 03:52:04 2026 +0530
+
+    Activated ai features
+
+[33mcommit 5c1ece467350771fa2bef9331dd5c31b5a1a6a1d[m
+Author: GarvitDumir <garvit.dumir1103@gmail.com>
+Date:   Thu Oct 29 02:33:55 2026 +0530
+
+     Added js files
+
+[33mcommit bb052d2644a19287740fc652d4e10ea20a7bcaa1[m
+Merge: 5ad892e b72b5d1
+Author: sai <you@example.com>
+Date:   Thu Oct 29 02:19:54 2026 +0530
+
+    Complete merge
+
+[33mcommit 5ad892e52daafbb2005f50a02ddf5ce216538937[m
+Author: sai <you@example.com>
+Date:   Thu Oct 29 02:08:32 2026 +0530
+
+    Created page for farmer
+
+[33mcommit b72b5d15be52d10367490156150b33a7cfc6c577[m
+Author: GarvitDumir <garvit.dumir1103@gmail.com>
+Date:   Thu Oct 29 02:00:50 2026 +0530
+
+    Add voice assistant and crop quality features
+
+[33mcommit 61199d8f6db73b4c22fa7403b2b94f8d065918be[m
+Author: GarvitDumir <garvit.dumir1103@gmail.com>
+Date:   Thu Oct 29 01:28:11 2026 +0530
+
+    feat: initial commit for Fair Harvest HTML/CSS/JS project
