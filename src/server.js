@@ -11,6 +11,7 @@ app.use(express.json({ limit: "1mb" }));
 // API routes
 app.use("/api/listings", require("./routes/listings"));
 app.use("/api/village-pools", require("./routes/villagePools"));
+app.use("/api/crops", require("./routes/crops"));
 
 // Health check
 app.get("/api/health", (req, res) => {
